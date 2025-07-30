@@ -12,6 +12,13 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { PointsConfig } from '../models/bunny.model';
 import { TimestampUtil } from '../../shared/utils/timestamp.util';
 
+/**
+ * Service for managing configuration settings related to points in the application
+ * Provides methods to get, update, and initialize points configuration
+ * Uses Firestore's real-time capabilities to keep the config updated
+ */
+// Note: This service is designed to be pure and free from side effects
+// It uses TimestampUtil for safe conversions and avoids circular dependencies
 @Injectable({
   providedIn: 'root',
 })
@@ -49,7 +56,7 @@ export class ConfigService {
   public async getPointsConfig(): Promise<PointsConfig> {
     try {
       const snapshot = await getDoc(this.configDoc);
-      
+
       if (snapshot.exists()) {
         return TimestampUtil.convertFirestoreDocument<PointsConfig>(snapshot.data());
       } else {
@@ -66,11 +73,11 @@ export class ConfigService {
     try {
       const validatedConfig = this.validateConfig(newConfig);
       const firestoreData = TimestampUtil.prepareForFirestore(validatedConfig);
-      
+
       await setDoc(this.configDoc, firestoreData);
-      
+
       await this.recalculateAllHappiness();
-      
+
       return true;
     } catch (error) {
       console.error('Error updating points config:', error);
@@ -92,7 +99,7 @@ export class ConfigService {
   public async recalculateAllHappiness(): Promise<void> {
     try {
       console.log('Triggering happiness recalculation due to config change...');
-      
+
       const { EventService } = await import('./event.service');
       const eventService = new EventService();
       await eventService.recalculateAllBunniesHappiness();
