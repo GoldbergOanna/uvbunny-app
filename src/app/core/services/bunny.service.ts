@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -24,6 +24,7 @@ import { TimestampUtil } from '@shared/utils/timestamp.util';
 @Injectable({  providedIn: 'root',})
 export class BunnyService {
   private firestore: Firestore = inject(Firestore);
+  private ngZone: NgZone = inject(NgZone);
   private bunniesCollection = collection(this.firestore, 'bunnies');
   private bunniesSubject = new BehaviorSubject<Bunny[]>([]);
   public bunnies$: Observable<Bunny[]> = this.bunniesSubject.asObservable();
@@ -52,13 +53,27 @@ export class BunnyService {
   public async addBunny(bunnyData: Omit<Bunny, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> {
     try {
       const now = new Date();
+
+      const data = { ...bunnyData };
+
+      // Remove avatarUrl if it's undefined, null, or empty string
+      if (!data.avatarUrl || data.avatarUrl.trim() === '') {
+        delete data.avatarUrl;
+      }
+
       const newBunny = {
-        ...bunnyData,
+        ...data,
         createdAt: now,
         updatedAt: now
       };
+
       const firestoreData = TimestampUtil.convertDatesToTimestamps(newBunny);
-      const docRef = await addDoc(this.bunniesCollection, firestoreData);
+      
+      // Run Firebase operation within Angular zone
+      const docRef = await this.ngZone.run(() => 
+        addDoc(this.bunniesCollection, firestoreData)
+      );
+      
       return docRef.id;
     } catch (error) {
       console.error('Error adding bunny:', error);
@@ -69,12 +84,29 @@ export class BunnyService {
   public async updateBunny(id: string, updates: Partial<Omit<Bunny, 'id' | 'createdAt'>>): Promise<boolean> {
     try {
       const bunnyDoc = doc(this.firestore, `bunnies/${id}`);
+
+      // Clean the updates to remove undefined values that Firebase doesn't accept
+      const cleanedUpdates = { ...updates };
+
+      // Remove fields with undefined values
+      Object.keys(cleanedUpdates).forEach(key => {
+        if (cleanedUpdates[key as keyof typeof cleanedUpdates] === undefined) {
+          delete cleanedUpdates[key as keyof typeof cleanedUpdates];
+        }
+      });
+
       const updateData = {
-        ...updates,
+        ...cleanedUpdates,
         updatedAt: new Date()
       };
+
       const firestoreData = TimestampUtil.convertDatesToTimestamps(updateData);
-      await updateDoc(bunnyDoc, firestoreData);
+      
+      // Run Firebase operation within Angular zone
+      await this.ngZone.run(() => 
+        updateDoc(bunnyDoc, firestoreData)
+      );
+      
       return true;
     } catch (error) {
       console.error('Error updating bunny:', error);

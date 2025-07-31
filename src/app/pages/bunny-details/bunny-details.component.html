@@ -26,7 +26,12 @@
   <ng-container *ngIf="bunny$ | async as bunny">
     <!-- Header with Back Button -->
     <header class="page-header">
-      <button type="button" class="back-button" (click)="goBack()" aria-label="Back to dashboard">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goBack()"
+        aria-label="Back to dashboard"
+      >
         <i class="bi bi-arrow-left"></i>
         <span>Back to Dashboard</span>
       </button>
@@ -36,7 +41,10 @@
     <!-- Bunny Profile Section -->
     <section class="bunny-profile-section">
       <div class="bunny-avatar-section">
-        <div class="avatar-container" [class.uploading]="isUploadingAvatar$ | async">
+        <div
+          class="avatar-container"
+          [class.uploading]="isUploadingAvatar$ | async"
+        >
           <img
             [src]="getBunnyAvatar(bunny)"
             [alt]="bunny.name + ' avatar'"
@@ -53,12 +61,21 @@
               class="avatar-input"
             />
             <label for="avatarUpload" class="avatar-upload-label">
-              <i class="bi bi-camera-fill" *ngIf="!(isUploadingAvatar$ | async)"></i>
-              <div class="spinner-border spinner-border-sm" *ngIf="isUploadingAvatar$ | async" role="status">
+              <i
+                class="bi bi-camera-fill"
+                *ngIf="!(isUploadingAvatar$ | async)"
+              ></i>
+              <div
+                class="spinner-border spinner-border-sm"
+                *ngIf="isUploadingAvatar$ | async"
+                role="status"
+              >
                 <span class="visually-hidden">Uploading...</span>
               </div>
               <span class="upload-text">
-                {{ (isUploadingAvatar$ | async) ? 'Uploading...' : 'Change Photo' }}
+                {{
+                  (isUploadingAvatar$ | async) ? "Uploading..." : "Change Photo"
+                }}
               </span>
             </label>
           </div>
@@ -69,7 +86,11 @@
           <h2 class="bunny-name">{{ bunny.name }}</h2>
 
           <!-- Happiness Meter -->
-          <app-happiness-meter [happiness]="bunny.happiness" size="large" [showStatus]="true"></app-happiness-meter>
+          <app-happiness-meter
+            [happiness]="bunny.happiness"
+            size="large"
+            [showStatus]="true"
+          ></app-happiness-meter>
         </div>
       </div>
     </section>
@@ -98,7 +119,9 @@
                 <div class="button-icon">🥬</div>
                 <div class="button-content">
                   <span class="button-label">Lettuce</span>
-                  <span class="button-points">+{{ config.lettuce }} points</span>
+                  <span class="button-points"
+                    >+{{ config.lettuce }} points</span
+                  >
                 </div>
                 <div class="button-badge">+{{ config.lettuce }}</div>
               </button>
@@ -135,12 +158,22 @@
                 <i class="bi bi-controller me-2"></i>
                 Play with Friends
               </h3>
-              <p class="panel-subtitle">Let {{ bunny.name }} play with other bunnies</p>
+              <p class="panel-subtitle">
+                Let {{ bunny.name }} play with other bunnies
+              </p>
             </div>
 
-            <div class="play-controls" *ngIf="otherBunnies$ | async as otherBunnies">
-              <div class="playmate-selection" *ngIf="otherBunnies.length > 0; else noBunnies">
-                <label for="playmateSelect" class="playmate-label">Choose a playmate:</label>
+            <div
+              class="play-controls"
+              *ngIf="otherBunnies$ | async as otherBunnies"
+            >
+              <div
+                class="playmate-selection"
+                *ngIf="otherBunnies.length > 0; else noBunnies"
+              >
+                <label for="playmateSelect" class="playmate-label"
+                  >Choose a playmate:</label
+                >
                 <select
                   id="playmateSelect"
                   class="form-select playmate-select"
@@ -148,7 +181,10 @@
                 >
                   <option value="">Select a bunny friend...</option>
                   <option
-                    *ngFor="let playmate of otherBunnies; trackBy: trackByBunnyId"
+                    *ngFor="
+                      let playmate of otherBunnies;
+                      trackBy: trackByBunnyId
+                    "
                     [value]="playmate.id"
                   >
                     {{ playmate.name }}
@@ -161,11 +197,18 @@
                   [disabled]="!playmateControl.value || (isPlaying$ | async)"
                   (click)="playWithBunny()"
                 >
-                  <i class="bi bi-play-fill me-2" *ngIf="!(isPlaying$ | async)"></i>
-                  <div class="spinner-border spinner-border-sm me-2" *ngIf="isPlaying$ | async" role="status">
+                  <i
+                    class="bi bi-play-fill me-2"
+                    *ngIf="!(isPlaying$ | async)"
+                  ></i>
+                  <div
+                    class="spinner-border spinner-border-sm me-2"
+                    *ngIf="isPlaying$ | async"
+                    role="status"
+                  >
                     <span class="visually-hidden">Playing...</span>
                   </div>
-                  {{ (isPlaying$ | async) ? 'Playing...' : 'Start Playing!' }}
+                  {{ (isPlaying$ | async) ? "Playing..." : "Start Playing!" }}
                 </button>
               </div>
 
@@ -173,7 +216,9 @@
                 <div class="no-playmates">
                   <i class="bi bi-emoji-frown"></i>
                   <p>No other bunnies available to play with.</p>
-                  <p class="text-muted">Add more bunnies to enable playmates!</p>
+                  <p class="text-muted">
+                    Add more bunnies to enable playmates!
+                  </p>
                 </div>
               </ng-template>
             </div>
@@ -189,14 +234,18 @@
           <i class="bi bi-clock-history me-2"></i>
           Recent Activities
         </h3>
-        <p class="section-subtitle">{{ bunny.name }}'s latest adventures and meals</p>
+        <p class="section-subtitle">
+          {{ bunny.name }}'s latest adventures and meals
+        </p>
       </div>
 
       <div class="event-list" *ngIf="events$ | async as events">
         <div *ngIf="events.length === 0" class="no-events">
           <i class="bi bi-calendar-x"></i>
           <p>No activities yet!</p>
-          <p class="text-muted">Start feeding or playing to see {{ bunny.name }}'s adventures here.</p>
+          <p class="text-muted">
+            Start feeding or playing to see {{ bunny.name }}'s adventures here.
+          </p>
         </div>
 
         <div
@@ -210,7 +259,9 @@
 
           <div class="event-content">
             <div class="event-details">
-              <span class="event-description">{{ getEventDescription(event) }}</span>
+              <span class="event-description">{{
+                getEventDescription(event)
+              }}</span>
               <span class="event-points" *ngIf="event.pointsEarned > 0">
                 +{{ event.pointsEarned }} points
               </span>
