@@ -1,0 +1,268 @@
+.happiness-display {
+  width: 100%;
+
+  .happiness-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .happiness-label {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .happiness-value {
+      font-weight: 700;
+      color: var(--primary);
+    }
+  }
+
+  .happiness-bar-container {
+    margin-bottom: 0.75rem;
+
+    .happiness-bar {
+      background: var(--background);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      transition: var(--transition);
+
+      .happiness-progress {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.6s ease-in-out;
+        position: relative;
+
+        &::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+          animation: shimmer 2s infinite;
+        }
+
+        &.excellent {
+          background: linear-gradient(90deg, #059669, #10b981);
+        }
+
+        &.good {
+          background: linear-gradient(90deg, #2563eb, #3b82f6);
+        }
+
+        &.okay {
+          background: linear-gradient(90deg, #eab308, #fbbf24);
+        }
+
+        &.poor {
+          background: linear-gradient(90deg, #dc2626, #ef4444);
+        }
+      }
+    }
+  }
+
+  .happiness-status {
+    font-weight: 500;
+
+    .status-excellent { 
+      color: #059669; 
+    }
+    .status-good { 
+      color: #2563eb; 
+    }
+    .status-okay { 
+      color: #eab308; 
+    }
+    .status-poor { 
+      color: #dc2626; 
+    }
+  }
+
+  // Size variants
+  &.size-small {
+    .happiness-header {
+      margin-bottom: 0.5rem;
+
+      .happiness-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .happiness-value {
+        font-size: 0.875rem;
+      }
+    }
+
+    .happiness-bar-container {
+      margin-bottom: 0.5rem;
+
+      .happiness-bar {
+        height: 6px;
+        border-radius: 3px;
+
+        .happiness-progress {
+          border-radius: 3px;
+        }
+      }
+    }
+
+    .happiness-status {
+      font-size: 0.75rem;
+    }
+  }
+
+  &.size-medium {
+    .happiness-header {
+      .happiness-label {
+        font-size: 0.875rem;
+      }
+
+      .happiness-value {
+        font-size: 1.125rem;
+      }
+    }
+
+    .happiness-bar-container {
+      .happiness-bar {
+        height: 8px;
+      }
+    }
+
+    .happiness-status {
+      font-size: 0.875rem;
+    }
+  }
+
+  &.size-large {
+    .happiness-header {
+      margin-bottom: 1rem;
+
+      .happiness-label {
+        font-size: 1rem;
+      }
+
+      .happiness-value {
+        font-size: 1.5rem;
+      }
+    }
+
+    .happiness-bar-container {
+      margin-bottom: 1rem;
+
+      .happiness-bar {
+        height: 12px;
+        border-radius: 6px;
+
+        .happiness-progress {
+          border-radius: 6px;
+        }
+      }
+    }
+
+    .happiness-status {
+      font-size: 1rem;
+    }
+  }
+}
+
+// Hover effects
+.happiness-display:hover {
+  .happiness-bar {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .happiness-progress {
+    &::after {
+      animation-duration: 1.5s;
+    }
+  }
+}
+
+// Animation for shimmer effect
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .happiness-display {
+    &.size-large {
+      .happiness-header {
+        .happiness-value {
+          font-size: 1.25rem;
+        }
+      }
+
+      .happiness-bar-container {
+        .happiness-bar {
+          height: 10px;
+        }
+      }
+    }
+
+    &.size-medium {
+      .happiness-header {
+        .happiness-value {
+          font-size: 1rem;
+        }
+      }
+
+      .happiness-bar-container {
+        .happiness-bar {
+          height: 6px;
+        }
+      }
+    }
+  }
+}
+
+// Accessibility - Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .happiness-progress {
+    transition: width 0.3s ease;
+
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .happiness-bar {
+    border: 1px solid var(--text-primary);
+  }
+
+  .happiness-progress {
+    &.excellent {
+      background: #059669;
+    }
+
+    &.good {
+      background: #2563eb;
+    }
+
+    &.okay {
+      background: #eab308;
+    }
+
+    &.poor {
+      background: #dc2626;
+    }
+  }
+}
