@@ -4,6 +4,8 @@
   background: var(--background);
   min-height: 100vh;
   color: var(--text-primary);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .section-header {
@@ -182,8 +184,8 @@
 @media (max-width: 576px) {
   .main-page-container {
     .container-fluid {
-      padding-left: 1rem;
-      padding-right: 1rem;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
     }
   }
 

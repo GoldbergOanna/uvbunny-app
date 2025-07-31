@@ -151,3 +151,17 @@
     }
   }
 }
+
+@media (max-width: 768px) {
+  .bunny-card {
+    padding: 1.25rem !important;
+
+    .bunny-avatar {
+      width: 64px !important;
+      height: 64px !important;
+    }
+  }
+}
+
+
+
