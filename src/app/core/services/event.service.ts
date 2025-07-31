@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
   collection,
-  doc,
   addDoc,
   query,
   where,
@@ -14,8 +13,8 @@ import {
   limit,
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
-import { BunnyEvent, EatingEvent, PlayingEvent } from '../models/bunny.model';
-import { TimestampUtil } from '../../shared/utils/timestamp.util';
+import { BunnyEvent, EatingEvent, PlayingEvent } from '@core/models/bunny.model';
+import { TimestampUtil } from '@shared/utils/timestamp.util';
 import { ConfigService } from './config.service';
 import { BunnyService } from './bunny.service';
 

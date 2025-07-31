@@ -1,0 +1,39 @@
+<section class="stats-section mb-5" *ngIf="stats$ | async as stats">
+          <div class="row g-4">
+            <div class="col-12 col-md-4">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="bi bi-emoji-smile"></i>
+                </div>
+                <div class="stat-content">
+                  <h3 class="stat-value">
+                    {{ stats.averageHappiness }}%
+                  </h3>
+                  <p class="stat-label">Average Happiness</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="bi bi-collection"></i>
+                </div>
+                <div class="stat-content">
+                  <h3 class="stat-value">{{ stats.totalBunnies }}</h3>
+                  <p class="stat-label">Total Bunnies</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="bi bi-activity"></i>
+                </div>
+                <div class="stat-content">
+                  <h3 class="stat-value">{{ stats.eventsToday }}</h3>
+                  <p class="stat-label">Events Today</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>

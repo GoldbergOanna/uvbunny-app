@@ -104,6 +104,11 @@ export class DashboardStateService {
     };
   }
 
+  public clearError(): void {
+    const currentState = this.getInitialComponentState();
+    currentState.error = null;
+    }
+
   /**
    * Counts the number of events whose timestamp is today (based on local time).
    * Uses TimestampUtil to support Firestore Timestamps.

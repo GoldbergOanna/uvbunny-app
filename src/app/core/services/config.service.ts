@@ -17,8 +17,6 @@ import { TimestampUtil } from '@shared/utils/timestamp.util';
  * Provides methods to get, update, and initialize points configuration
  * Uses Firestore's real-time capabilities to keep the config updated
  */
-// Note: This service is designed to be pure and free from side effects
-// It uses TimestampUtil for safe conversions and avoids circular dependencies
 @Injectable({
   providedIn: 'root',
 })

@@ -1,0 +1,229 @@
+
+.main-page-container {
+  font-family: var(--font-family, 'Inter', sans-serif);
+  background: var(--background);
+  min-height: 100vh;
+  color: var(--text-primary);
+}
+
+.section-header {
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+}
+
+.add-bunny-section {
+  .add-bunny-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+
+    .form-label {
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+      border: 1px solid var(--border);
+      border-radius: var(--border-radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      transition: var(--transition);
+      background: var(--surface);
+      color: var(--text-primary);
+
+      &:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        outline: none;
+      }
+
+      &.is-invalid {
+        border-color: var(--invalid);
+
+        &:focus {
+          border-color: var(--invalid);
+          box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+      }
+
+      &::placeholder {
+        color: var(--text-secondary);
+      }
+    }
+
+    .input-group-text {
+      background: var(--background);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .invalid-feedback {
+      font-size: 0.75rem;
+      color: var(--invalid);
+      margin-top: 0.25rem;
+    }
+
+    .form-actions {
+      .btn {
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+
+        &.btn-primary {
+          background: var(--primary);
+          border-color: var(--primary);
+
+          &:hover:not(:disabled) {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            transform: translateY(-1px);
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        &.btn-outline-secondary {
+          border-color: var(--border);
+          color: var(--text-secondary);
+
+          &:hover {
+            background: var(--background);
+            border-color: var(--text-secondary);
+          }
+        }
+      }
+    }
+  }
+}
+
+.empty-state {
+  padding: 4rem 2rem;
+
+  .empty-state-icon {
+    font-size: 4rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+  }
+
+  .empty-state-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 1.5rem 0;
+
+    .page-title {
+      font-size: 1.75rem;
+    }
+  }
+
+  .add-bunny-card {
+    padding: 1.5rem !important;
+  }
+
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem !important;
+
+    .stat-content {
+      .stat-value {
+        font-size: 1.5rem !important;
+      }
+    }
+  }
+
+  .bunny-card {
+    padding: 1.25rem !important;
+
+    .bunny-avatar {
+      width: 64px !important;
+      height: 64px !important;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .main-page-container {
+    .container-fluid {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  .page-title {
+    font-size: 1.5rem !important;
+  }
+
+  .section-title {
+    font-size: 1.25rem !important;
+  }
+
+  .empty-state {
+    padding: 2rem 1rem !important;
+
+    .empty-state-icon {
+      font-size: 3rem !important;
+    }
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.bunny-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: high) {
+  .bunny-card {
+    border-width: 2px;
+  }
+
+  .form-control:focus {
+    border-width: 2px;
+  }
+}

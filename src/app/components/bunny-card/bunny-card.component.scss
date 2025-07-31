@@ -1,0 +1,153 @@
+.bunnies-grid {
+  .bunny-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+
+    &:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--primary);
+
+      .bunny-card-overlay {
+        opacity: 1;
+      }
+
+      .bunny-avatar {
+        transform: scale(1.1);
+      }
+    }
+
+    &:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .bunny-avatar-container {
+      text-align: center;
+      margin-bottom: 1rem;
+
+      .bunny-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--border);
+        transition: var(--transition);
+      }
+    }
+
+    .bunny-info {
+      .bunny-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      .happiness-container {
+        .happiness-label {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.5rem;
+
+          .happiness-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .happiness-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+          }
+        }
+
+        .happiness-bar {
+          height: 6px;
+          background: var(--background);
+          border-radius: 3px;
+          overflow: hidden;
+          position: relative;
+
+          .happiness-progress {
+            height: 100%;
+            border-radius: 3px;
+            transition: var(--transition);
+            position: relative;
+
+            &::after {
+              content: "";
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+              );
+              animation: shimmer 2s infinite;
+            }
+
+            &.happiness-high {
+              background: linear-gradient(90deg, var(--success), #10b981);
+            }
+
+            &.happiness-medium {
+              background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            }
+
+            &.happiness-low {
+              background: linear-gradient(90deg, #f97316, #fb923c);
+            }
+
+            &.happiness-critical {
+              background: linear-gradient(90deg, #dc2626, #ef4444);
+            }
+          }
+        }
+      }
+    }
+
+    .bunny-card-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(37, 99, 235, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: var(--transition);
+      color: white;
+      gap: 0.5rem;
+
+      i {
+        font-size: 2rem;
+      }
+
+      span {
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}

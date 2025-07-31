@@ -1,0 +1,11 @@
+.alert {
+  border: none;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+
+  &.alert-danger {
+    background: #fef2f2;
+    color: #991b1b;
+    border-left: 4px solid #dc2626;
+  }
+}
