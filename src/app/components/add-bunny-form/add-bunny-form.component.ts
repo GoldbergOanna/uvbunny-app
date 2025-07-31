@@ -41,7 +41,7 @@ export class AddBunnyFormComponent implements OnDestroy {
       [Validators.pattern(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i)],
     ],
     happiness: [
-      50,
+      10,
       [Validators.required, Validators.min(0), Validators.max(100)],
     ],
   });
@@ -62,7 +62,7 @@ export class AddBunnyFormComponent implements OnDestroy {
             this.addBunnyForm.reset({
               name: '',
               avatarUrl: '',
-              happiness: 50,
+              happiness: 10,
             });
             // TODO Success feedback could be added here (toast notification, etc.)
           } else {
