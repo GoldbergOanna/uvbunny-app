@@ -7,10 +7,9 @@ import { Timestamp } from '@angular/fire/firestore';
  * Safe from circular dependency issues
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TimestampUtil {
-
   /**
    * Type guard to check if a value is a Firestore Timestamp
    * @param value - The value to check
@@ -70,15 +69,22 @@ export class TimestampUtil {
    */
   static convertToFirestoreTimestamp(date: Date): Timestamp {
     if (!date || !(date instanceof Date)) {
-      throw new Error('TimestampUtil: Invalid date provided - must be a Date object');
+      throw new Error(
+        'TimestampUtil: Invalid date provided - must be a Date object',
+      );
     }
     if (isNaN(date.getTime())) {
-      throw new Error('TimestampUtil: Invalid date provided - date is not valid');
+      throw new Error(
+        'TimestampUtil: Invalid date provided - date is not valid',
+      );
     }
     try {
       return Timestamp.fromDate(date);
     } catch (error) {
-      console.error('TimestampUtil: Error converting Date to Timestamp:', error);
+      console.error(
+        'TimestampUtil: Error converting Date to Timestamp:',
+        error,
+      );
       throw error;
     }
   }
@@ -95,68 +101,64 @@ export class TimestampUtil {
    * const converted = TimestampUtil.convertTimestampFieldsRecursively(firestoreDoc);
    * ```
    */
-  static convertTimestampFieldsRecursively(obj: any, visited?: WeakSet<object>): any {
+  static convertTimestampFieldsRecursively(
+    obj: any,
+    visited?: WeakSet<object>,
+  ): any {
     if (obj === null || obj === undefined) {
       return obj;
     }
 
-    // Handle Firestore Timestamps
     if (TimestampUtil.isFirestoreTimestamp(obj)) {
       return TimestampUtil.safeTimestampToDate(obj);
     }
 
-    // Handle Arrays
     if (Array.isArray(obj)) {
-      // Initialize visited set on first call
       if (!visited) {
         visited = new WeakSet<object>();
       }
-      
-      // Check for circular reference
       if (visited.has(obj)) {
-        console.warn('TimestampUtil: Circular reference detected in array, skipping to prevent stack overflow');
+        console.warn(
+          'TimestampUtil: Circular reference detected in array, skipping to prevent stack overflow',
+        );
         return '[Circular Reference]';
       }
-      
-      // Add to visited set
+
       visited.add(obj);
-      
-      const result = obj.map(item => TimestampUtil.convertTimestampFieldsRecursively(item, visited));
-      
+
+      const result = obj.map((item) =>
+        TimestampUtil.convertTimestampFieldsRecursively(item, visited),
+      );
       // Remove from visited set (backtrack)
       visited.delete(obj);
-      
+
       return result;
     }
 
-    // Handle Objects (but not Date objects or other built-in types)
     if (typeof obj === 'object' && obj.constructor === Object) {
-      // Initialize visited set on first call
       if (!visited) {
         visited = new WeakSet<object>();
       }
-      
+
       // Check for circular reference
       if (visited.has(obj)) {
-        console.warn('TimestampUtil: Circular reference detected in object, skipping to prevent stack overflow');
+        console.warn(
+          'TimestampUtil: Circular reference detected in object, skipping to prevent stack overflow',
+        );
         return '[Circular Reference]';
       }
-      
-      // Add to visited set
+
       visited.add(obj);
-      
       const converted: any = {};
       for (const [key, value] of Object.entries(obj)) {
-        converted[key] = TimestampUtil.convertTimestampFieldsRecursively(value, visited);
+        converted[key] = TimestampUtil.convertTimestampFieldsRecursively(
+          value,
+          visited,
+        );
       }
-      
-      // Remove from visited set (backtrack)
       visited.delete(obj);
-      
       return converted;
     }
-
-    // Return primitive values and other object types as-is
     return obj;
   }
 
@@ -178,7 +180,10 @@ export class TimestampUtil {
       const converted = TimestampUtil.convertTimestampFieldsRecursively(data);
       return converted as T;
     } catch (error) {
-      console.error('TimestampUtil: Error converting Firestore document:', error);
+      console.error(
+        'TimestampUtil: Error converting Firestore document:',
+        error,
+      );
       return data as T;
     }
   }
@@ -195,11 +200,16 @@ export class TimestampUtil {
   static convertFirestoreArray<T>(array: any[]): T[] {
     try {
       if (!Array.isArray(array)) {
-        console.warn('TimestampUtil: Expected array but received:', typeof array);
+        console.warn(
+          'TimestampUtil: Expected array but received:',
+          typeof array,
+        );
         return [];
       }
 
-      return array.map(item => TimestampUtil.convertFirestoreDocument<T>(item));
+      return array.map((item) =>
+        TimestampUtil.convertFirestoreDocument<T>(item),
+      );
     } catch (error) {
       console.error('TimestampUtil: Error converting Firestore array:', error);
       return [];
@@ -222,68 +232,54 @@ export class TimestampUtil {
       return obj;
     }
 
-    // Handle Date objects
     if (obj instanceof Date) {
       try {
         return TimestampUtil.convertToFirestoreTimestamp(obj);
       } catch (error) {
-        console.warn('TimestampUtil: Skipping invalid date during conversion:', error);
+        console.warn(
+          'TimestampUtil: Skipping invalid date during conversion:',
+          error,
+        );
         return obj;
       }
     }
 
-    // Handle Arrays
     if (Array.isArray(obj)) {
-      // Initialize visited set on first call
       if (!visited) {
         visited = new WeakSet<object>();
       }
-      
-      // Check for circular reference
       if (visited.has(obj)) {
-        console.warn('TimestampUtil: Circular reference detected in array, skipping to prevent stack overflow');
+        console.warn(
+          'TimestampUtil: Circular reference detected in array, skipping to prevent stack overflow',
+        );
         return '[Circular Reference]';
       }
-      
-      // Add to visited set
       visited.add(obj);
-      
-      const result = obj.map(item => TimestampUtil.convertDatesToTimestamps(item, visited));
-      
-      // Remove from visited set (backtrack)
+      const result = obj.map((item) =>
+        TimestampUtil.convertDatesToTimestamps(item, visited),
+      );
       visited.delete(obj);
-      
       return result;
     }
 
-    // Handle Objects (but not Timestamp objects or other built-in types)
     if (typeof obj === 'object' && obj.constructor === Object) {
-      // Initialize visited set on first call
       if (!visited) {
         visited = new WeakSet<object>();
       }
-      
-      // Check for circular reference
       if (visited.has(obj)) {
-        console.warn('TimestampUtil: Circular reference detected in object, skipping to prevent stack overflow');
+        console.warn(
+          'TimestampUtil: Circular reference detected in object, skipping to prevent stack overflow',
+        );
         return '[Circular Reference]';
       }
-      
-      // Add to visited set
       visited.add(obj);
-      
       const converted: any = {};
       for (const [key, value] of Object.entries(obj)) {
         converted[key] = TimestampUtil.convertDatesToTimestamps(value, visited);
       }
-      
-      // Remove from visited set (backtrack)
       visited.delete(obj);
-      
       return converted;
     }
-
-    // Return primitive values and other object types as-is
     return obj;
   }
 
@@ -302,7 +298,10 @@ export class TimestampUtil {
     try {
       return TimestampUtil.convertDatesToTimestamps(data);
     } catch (error) {
-      console.error('TimestampUtil: Error preparing data for Firestore:', error);
+      console.error(
+        'TimestampUtil: Error preparing data for Firestore:',
+        error,
+      );
       throw error;
     }
   }
