@@ -8,10 +8,11 @@ import { map, startWith, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { DashboardStateService } from '@core/services/dashboard-state.service';
 import { Bunny } from '@core/models/bunny.model';
+import { HappinessMeterComponent } from '@components/happiness-meter/happiness-meter.component';
 
 @Component({
   selector: 'app-bunny-card',
-  imports: [CommonModule],
+  imports: [CommonModule, HappinessMeterComponent],
   templateUrl: './bunny-card.component.html',
   styleUrl: './bunny-card.component.scss'
 })
@@ -28,21 +29,6 @@ export class BunnyCardComponent {
         })
       );
 
-  /**
-   * Get happiness color based on value
-   * @param happiness - Happiness value (0-100)
-   * @returns CSS class for happiness color
-   */
-  getHappinessColor(happiness: number): string {
-    if (happiness >= 80) return 'happiness-high';
-    if (happiness >= 50) return 'happiness-medium';
-    if (happiness >= 20) return 'happiness-low';
-    return 'happiness-critical';
-  }
-
-  getHappinessWidth(happiness: number): string {
-    return `${happiness}%`;
-  }
 
   /**
    * Get bunny avatar URL or generate a default one
