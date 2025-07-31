@@ -13,8 +13,8 @@ import {
   QuerySnapshot,
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable, map, catchError, of } from 'rxjs';
-import { Bunny } from '../models/bunny.model';
-import { TimestampUtil } from '../../shared/utils/timestamp.util';
+import { Bunny } from '@core/models/bunny.model';
+import { TimestampUtil } from '@shared/utils/timestamp.util';
 
 /**
  * Service for managing bunnies in Firestore
