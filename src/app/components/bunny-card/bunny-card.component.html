@@ -37,20 +37,12 @@
           <div class="bunny-info">
             <h4 class="bunny-name">{{ bunny.name }}</h4>
 
-            <!-- Happiness Bar -->
-            <div class="happiness-container">
-              <div class="happiness-label">
-                <span class="happiness-text">Happiness</span>
-                <span class="happiness-value">{{ bunny.happiness }}%</span>
-              </div>
-              <div class="happiness-bar">
-                <div
-                  class="happiness-progress"
-                  [class]="getHappinessColor(bunny.happiness)"
-                  [style.width]="getHappinessWidth(bunny.happiness)"
-                ></div>
-              </div>
-            </div>
+            <!-- Happiness Meter -->
+            <app-happiness-meter 
+              [happiness]="bunny.happiness"
+              size="small"
+              [showStatus]="false">
+            </app-happiness-meter>
           </div>
 
           <!-- Hover Effect Overlay -->

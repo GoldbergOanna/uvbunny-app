@@ -1,5 +1,5 @@
 /**
- * Main bunny entity representing a virtual pet bunny
+ * Represents a bunny with its properties and behaviors
  */
 export interface Bunny {
   id: string;
@@ -45,4 +45,14 @@ export interface PointsConfig {
   carrot: number;
   playing: number;
   repeatPlaying: number;
+}
+
+/**
+ * Data needed to create a new bunny event
+ */
+export interface CreateBunnyEventData {
+  bunnyId: string;
+  type: 'eating' | 'playing';
+  details: string;
+  pointsEarned: number;
 }
