@@ -6,90 +6,78 @@
     </p>
   </div>
 
-  <div class="add-bunny-card">
-    <form [formGroup]="addBunnyForm" (ngSubmit)="onAddBunny()" novalidate>
-      <div class="row g-3">
-        <div class="col-12 col-md-4">
-          <label for="bunnyName" class="form-label">Name *</label>
-          <input
-            type="text"
-            class="form-control"
-            [class.is-invalid]="hasFieldError('name')"
-            id="bunnyName"
-            formControlName="name"
-            placeholder="Enter bunny name"
-          />
-          <div *ngIf="hasFieldError('name')" class="invalid-feedback">
-            {{ getFieldError("name") }}
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <label for="bunnyAvatar" class="form-label">Avatar URL</label>
-          <input
-            type="url"
-            class="form-control"
-            [class.is-invalid]="hasFieldError('avatarUrl')"
-            id="bunnyAvatar"
-            formControlName="avatarUrl"
-            placeholder="https://example.com/avatar.jpg"
-          />
-          <div *ngIf="hasFieldError('avatarUrl')" class="invalid-feedback">
-            {{ getFieldError("avatarUrl") }}
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <label for="bunnyHappiness" class="form-label"
-            >Initial Happiness</label
-          >
-          <div class="input-group">
+  <div class="card add-bunny-card">
+    <div class="card-body">
+      <form [formGroup]="addBunnyForm" (ngSubmit)="onAddBunny()" novalidate>
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-6">
+            <label for="bunnyName" class="form-label">Name *</label>
             <input
-              type="number"
+              type="text"
               class="form-control"
-              [class.is-invalid]="hasFieldError('happiness')"
-              id="bunnyHappiness"
-              formControlName="happiness"
-              min="0"
-              max="50"
+              [class.is-invalid]="hasFieldError('name')"
+              id="bunnyName"
+              formControlName="name"
+              placeholder="Enter bunny name"
             />
-            <span class="input-group-text">%</span>
+            <div *ngIf="hasFieldError('name')" class="invalid-feedback">
+              {{ getFieldError("name") }}
+            </div>
           </div>
-          <div *ngIf="hasFieldError('happiness')" class="invalid-feedback">
-            {{ getFieldError("happiness") }}
+
+          <div class="col-12 col-md-6">
+            <label for="bunnyAvatar" class="form-label">Avatar URL</label>
+            <input
+              type="url"
+              class="form-control"
+              [class.is-invalid]="hasFieldError('avatarUrl')"
+              id="bunnyAvatar"
+              formControlName="avatarUrl"
+              placeholder="https://example.com/avatar.jpg"
+            />
+            <div *ngIf="hasFieldError('avatarUrl')" class="invalid-feedback">
+              {{ getFieldError("avatarUrl") }}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="form-actions mt-4">
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="addBunnyForm.invalid || (isSubmitting$ | async)"
-        >
-          <span
-            *ngIf="isSubmitting$ | async"
-            class="spinner-border spinner-border-sm me-2"
-            role="status"
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="form-label mb-0">Initial Happiness</span>
+            <span class="text-muted">10%</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button
+            type="submit"
+            class="btn btn-dark"
+            [disabled]="addBunnyForm.invalid || (isSubmitting$ | async)"
           >
-            <span class="visually-hidden">Loading...</span>
-          </span>
-          {{ (isSubmitting$ | async) ? "Adding..." : "Add Bunny" }}
-        </button>
-        <button
-          type="button"
-          class="btn btn-outline-secondary ms-2"
-          (click)="
-            addBunnyForm.reset({
-              name: '',
-              avatarUrl: '',
-              happiness: 50,
-            })
-          "
-        >
-          Reset
-        </button>
-      </div>
-    </form>
+            <span
+              *ngIf="isSubmitting$ | async"
+              class="spinner-border spinner-border-sm me-2"
+              role="status"
+            >
+              <span class="visually-hidden">Loading...</span>
+            </span>
+            {{ (isSubmitting$ | async) ? "Adding..." : "Add Bunny" }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-light"
+            (click)="
+              addBunnyForm.reset({
+                name: '',
+                avatarUrl: '',
+                happiness: 10
+              })
+            "
+          >
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </section>
