@@ -9,8 +9,8 @@ import {
   DocumentData,
 } from '@angular/fire/firestore';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { PointsConfig } from '../models/bunny.model';
-import { TimestampUtil } from '../../shared/utils/timestamp.util';
+import { PointsConfig } from '@core/models/bunny.model';
+import { TimestampUtil } from '@shared/utils/timestamp.util';
 
 /**
  * Service for managing configuration settings related to points in the application
