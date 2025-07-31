@@ -1,0 +1,22 @@
+<!-- Happiness Display -->
+<div class="happiness-display" [class]="'size-' + size">
+  <div class="happiness-header">
+    <span class="happiness-label">Happiness Level</span>
+    <span class="happiness-value">{{ happiness }}%</span>
+  </div>
+  <div class="happiness-bar-container">
+    <div class="happiness-bar">
+      <div
+        class="happiness-progress"
+        [class]="getHappinessColor(happiness)"
+        [style.width]="getHappinessWidth(happiness)"
+      ></div>
+    </div>
+  </div>
+  <div class="happiness-status" *ngIf="showStatus">
+    <span *ngIf="happiness >= 80" class="status-excellent">Excellent! 🌟</span>
+    <span *ngIf="happiness >= 50 && happiness < 80" class="status-good">Good 😊</span>
+    <span *ngIf="happiness >= 20 && happiness < 50" class="status-okay">Needs attention 😐</span>
+    <span *ngIf="happiness < 20" class="status-poor">Needs care! 😢</span>
+  </div>
+</div>
