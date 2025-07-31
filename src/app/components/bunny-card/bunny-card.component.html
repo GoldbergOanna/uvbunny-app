@@ -1,0 +1,65 @@
+<section *ngIf="bunnies$ | async as bunnies" class="bunnies-section">
+  <!-- Empty State -->
+  <div *ngIf="!bunnies.length" class="empty-state text-center py-5">
+    <div class="empty-state-icon mb-3">
+      <i class="bi bi-plus-circle"></i>
+    </div>
+    <h3 class="empty-state-title">No Bunnies Yet</h3>
+    <p class="empty-state-subtitle text-muted">
+      Add your first virtual bunny using the form above
+    </p>
+  </div>
+
+  <div *ngIf="bunnies.length" class="bunnies-grid">
+    <div class="row g-4">
+      <div
+        *ngFor="let bunny of bunnies; trackBy: trackByBunnyId"
+        class="col-12 col-sm-6 col-lg-4 col-xl-3"
+      >
+        <div
+          class="bunny-card"
+          (click)="onBunnyCardClick(bunny.id)"
+          [attr.aria-label]="'View details for ' + bunny.name"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="onBunnyCardClick(bunny.id)"
+          (keydown.space)="onBunnyCardClick(bunny.id)"
+        >
+          <div class="bunny-avatar-container">
+            <img
+              [src]="getBunnyAvatar(bunny)"
+              [alt]="bunny.name + ' avatar'"
+              class="bunny-avatar"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="bunny-info">
+            <h4 class="bunny-name">{{ bunny.name }}</h4>
+
+            <!-- Happiness Bar -->
+            <div class="happiness-container">
+              <div class="happiness-label">
+                <span class="happiness-text">Happiness</span>
+                <span class="happiness-value">{{ bunny.happiness }}%</span>
+              </div>
+              <div class="happiness-bar">
+                <div
+                  class="happiness-progress"
+                  [class]="getHappinessColor(bunny.happiness)"
+                  [style.width]="getHappinessWidth(bunny.happiness)"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hover Effect Overlay -->
+          <div class="bunny-card-overlay">
+            <i class="bi bi-arrow-right-circle"></i>
+            <span>View Details</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

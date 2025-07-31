@@ -1,0 +1,26 @@
+<div class="main-page-container">
+  <app-header></app-header>
+
+  <main class="container-fluid">
+    <ng-container *ngIf="state$ | async as state">
+      <app-loadind-state *ngIf="state.isLoading"></app-loadind-state>
+      <app-error-alert
+        *ngIf="state.error && !state.isLoading"
+      ></app-error-alert>
+      <div *ngIf="!state.isLoading && !state.error">
+        <!-- Stats Section -->
+        <app-stats-section></app-stats-section>
+        <!-- Add Bunnies Section -->
+        <app-add-bunny-form></app-add-bunny-form>
+         <!-- Bunnies Card Section -->
+        <div class="section-header mb-4">
+          <h2 class="section-title">Your Bunnies</h2>
+          <p class="section-subtitle text-muted">
+            Click on a bunny card to view details and interact
+          </p>
+        </div>
+        <app-bunny-card></app-bunny-card>
+      </div>
+    </ng-container>
+  </main>
+</div>

@@ -1,0 +1,79 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { BunnyService } from '@core/services/bunny.service';
+import { Observable } from 'rxjs';
+import { map, startWith, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { DashboardStateService } from '@core/services/dashboard-state.service';
+import { Bunny } from '@core/models/bunny.model';
+
+@Component({
+  selector: 'app-bunny-card',
+  imports: [CommonModule],
+  templateUrl: './bunny-card.component.html',
+  styleUrl: './bunny-card.component.scss'
+})
+export class BunnyCardComponent {
+    private readonly router = inject(Router);
+    private readonly dashboardState = inject(DashboardStateService);
+
+      readonly bunnies$: Observable<Bunny[]> = this.dashboardState.state$.pipe(
+        map(state => state.bunnies),
+        startWith([]),
+        catchError((error) => {
+          console.error('Error loading stats:', error);
+          return of([]);
+        })
+      );
+
+  /**
+   * Get happiness color based on value
+   * @param happiness - Happiness value (0-100)
+   * @returns CSS class for happiness color
+   */
+  getHappinessColor(happiness: number): string {
+    if (happiness >= 80) return 'happiness-high';
+    if (happiness >= 50) return 'happiness-medium';
+    if (happiness >= 20) return 'happiness-low';
+    return 'happiness-critical';
+  }
+
+  getHappinessWidth(happiness: number): string {
+    return `${happiness}%`;
+  }
+
+  /**
+   * Get bunny avatar URL or generate a default one
+   * @param bunny - Bunny object
+   * @returns Avatar URL
+   */
+  getBunnyAvatar(bunny: Bunny): string {
+    return (
+      bunny.avatarUrl ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(bunny.name)}&background=2563eb&color=ffffff&size=80`
+    );
+  }
+  /**
+   * TrackBy function for ngFor to optimize rendering
+   * @param index - Index of the item
+   * @param bunny - Bunny object
+   * @returns Bunny ID
+   */
+  trackByBunnyId(index: number, bunny: Bunny): string {
+    return bunny.id;
+  }
+  /**
+   * Handle bunny card click to navigate to bunny details
+   * @param bunnyId - ID of the clicked bunny
+   */
+    onBunnyCardClick(bunnyId: string): void {
+    if (bunnyId) {
+      this.router.navigate(['/bunny', bunnyId]).catch((error) => {
+        console.error('Navigation error:', error);
+      });
+    }
+  }
+
+}
