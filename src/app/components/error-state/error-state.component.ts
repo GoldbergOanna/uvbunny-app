@@ -5,12 +5,12 @@ import { AsyncPipe } from '@angular/common';
 import { DashboardStateService } from '@core/services/dashboard-state.service';
 
 @Component({
-  selector: 'app-error-alert',
+  selector: 'app-error-state',
   imports: [AsyncPipe],
-  templateUrl: './error-alert.component.html',
-  styleUrl: './error-alert.component.scss'
+  templateUrl: './error-state.component.html',
+  styleUrl: './error-state.component.scss'
 })
-export class ErrorAlertComponent {
+export class ErrorStateComponent {
   constructor(private dashboardState: DashboardStateService) {}
    readonly error$: Observable<string | null> = this.dashboardState.state$.pipe(
     map(state => state.error)

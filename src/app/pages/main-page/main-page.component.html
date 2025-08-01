@@ -4,9 +4,9 @@
   <main class="container-fluid">
     <ng-container *ngIf="state$ | async as state">
       <app-loadind-state *ngIf="state.isLoading"></app-loadind-state>
-      <app-error-alert
+      <app-error-state
         *ngIf="state.error && !state.isLoading"
-      ></app-error-alert>
+      ></app-error-state>
       <div *ngIf="!state.isLoading && !state.error">
         <!-- Stats Section -->
         <app-stats-section></app-stats-section>

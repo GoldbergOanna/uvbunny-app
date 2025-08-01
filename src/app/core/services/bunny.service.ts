@@ -68,12 +68,12 @@ export class BunnyService {
       };
 
       const firestoreData = TimestampUtil.convertDatesToTimestamps(newBunny);
-      
+
       // Run Firebase operation within Angular zone
-      const docRef = await this.ngZone.run(() => 
+      const docRef = await this.ngZone.run(() =>
         addDoc(this.bunniesCollection, firestoreData)
       );
-      
+
       return docRef.id;
     } catch (error) {
       console.error('Error adding bunny:', error);
@@ -84,8 +84,6 @@ export class BunnyService {
   public async updateBunny(id: string, updates: Partial<Omit<Bunny, 'id' | 'createdAt'>>): Promise<boolean> {
     try {
       const bunnyDoc = doc(this.firestore, `bunnies/${id}`);
-
-      // Clean the updates to remove undefined values that Firebase doesn't accept
       const cleanedUpdates = { ...updates };
 
       // Remove fields with undefined values
@@ -101,12 +99,11 @@ export class BunnyService {
       };
 
       const firestoreData = TimestampUtil.convertDatesToTimestamps(updateData);
-      
-      // Run Firebase operation within Angular zone
-      await this.ngZone.run(() => 
+
+      await this.ngZone.run(() =>
         updateDoc(bunnyDoc, firestoreData)
       );
-      
+
       return true;
     } catch (error) {
       console.error('Error updating bunny:', error);
