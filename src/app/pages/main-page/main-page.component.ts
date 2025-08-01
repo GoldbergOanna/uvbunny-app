@@ -22,7 +22,7 @@ import { BunnyService } from '@core/services/bunny.service';
 
 import { HeaderComponent } from '@components/header/header.component';
 import { LoadindStateComponent } from '@components/loadind-state/loadind-state.component';
-import { ErrorAlertComponent } from '@components/error-alert/error-alert.component';
+import { ErrorStateComponent } from '@components/error-state/error-state.component';
 import { StatsSectionComponent } from '@components/stats-section/stats-section.component';
 import { BunnyCardComponent } from "@components/bunny-card/bunny-card.component";
 import { AddBunnyFormComponent } from "@components/add-bunny-form/add-bunny-form.component";
@@ -35,7 +35,7 @@ import { AddBunnyFormComponent } from "@components/add-bunny-form/add-bunny-form
     ReactiveFormsModule,
     HeaderComponent,
     LoadindStateComponent,
-    ErrorAlertComponent,
+    ErrorStateComponent,
     StatsSectionComponent,
     BunnyCardComponent,
     AddBunnyFormComponent
