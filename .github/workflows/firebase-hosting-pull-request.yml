@@ -47,7 +47,7 @@ jobs:
         run: |
           echo "🔍 Validating required GitHub Secrets for PR preview..."
           MISSING_SECRETS=()
-          
+
           # Check required secrets using environment variables for safe handling
           if [[ -z "${FIREBASE_API_KEY}" ]]; then
             MISSING_SECRETS+=("FIREBASE_API_KEY")
@@ -70,12 +70,12 @@ jobs:
           if [[ -z "${FIREBASE_SERVICE_ACCOUNT}" ]]; then
             MISSING_SECRETS+=("FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP")
           fi
-          
+
           # FIREBASE_MEASUREMENT_ID is optional for Google Analytics
           if [[ -z "${FIREBASE_MEASUREMENT_ID}" ]]; then
             echo "⚠️  FIREBASE_MEASUREMENT_ID is not set (Google Analytics will be disabled)"
           fi
-          
+
           if [[ ${#MISSING_SECRETS[@]} -ne 0 ]]; then
             echo "❌ Missing required GitHub Secrets:"
             printf "%s\n" "${MISSING_SECRETS[@]}"
@@ -84,11 +84,13 @@ jobs:
             echo "See .github/secrets-setup.md for detailed instructions"
             exit 1
           fi
-          
+
           echo "✅ All required secrets are configured"
 
       - name: Install dependencies
         run: npm ci
+        env:
+          NODE_ENV: development
 
       - name: Create environment files from secrets
         env:
@@ -101,14 +103,14 @@ jobs:
           FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         run: |
           echo "🔧 Creating environment files from GitHub Secrets for PR preview..."
-          
+
           # Validate that all required environment variables are set
           if [[ -z "${FIREBASE_API_KEY}" || -z "${FIREBASE_AUTH_DOMAIN}" || -z "${FIREBASE_PROJECT_ID}" || -z "${FIREBASE_STORAGE_BUCKET}" || -z "${FIREBASE_MESSAGING_SENDER_ID}" || -z "${FIREBASE_APP_ID}" ]]; then
             echo "❌ One or more required Firebase environment variables are missing"
             echo "This should have been caught in the validation step"
             exit 1
           fi
-          
+
           # Set fallback for optional measurement ID
           MEASUREMENT_ID="${FIREBASE_MEASUREMENT_ID:-\"\"}"
           if [[ -z "${FIREBASE_MEASUREMENT_ID}" ]]; then
@@ -116,21 +118,21 @@ jobs:
           else
             MEASUREMENT_ID="\"${FIREBASE_MEASUREMENT_ID}\""
           fi
-          
+
           # Ensure environments directory exists
           echo "📁 Creating environments directory..."
           mkdir -p src/environments
-          
+
           if [[ ! -d "src/environments" ]]; then
             echo "❌ Failed to create src/environments directory"
             exit 1
           fi
-          
+
           echo "✅ Directory src/environments/ created successfully"
-          
+
           # Create production environment file with proper TypeScript structure
           echo "📝 Creating production environment file for PR preview..."
-          
+
           # Create environment file using heredoc to avoid shell interpolation issues
           cat > src/environments/environment.prod.ts << 'EOF'
 // Generated automatically from GitHub Secrets during CI/CD (PR Preview)
@@ -140,7 +142,7 @@ export const environment = {
   production: true,
   firebase: {
 EOF
-          
+
           # Add Firebase configuration with proper escaping and single quotes
           # Escape any single quotes in the secret values to prevent syntax errors
           API_KEY_ESCAPED=$(echo "${FIREBASE_API_KEY}" | sed "s/'/\\\\'/g")
@@ -149,7 +151,7 @@ EOF
           STORAGE_BUCKET_ESCAPED=$(echo "${FIREBASE_STORAGE_BUCKET}" | sed "s/'/\\\\'/g")
           MESSAGING_SENDER_ID_ESCAPED=$(echo "${FIREBASE_MESSAGING_SENDER_ID}" | sed "s/'/\\\\'/g")
           APP_ID_ESCAPED=$(echo "${FIREBASE_APP_ID}" | sed "s/'/\\\\'/g")
-          
+
           # Handle optional measurement ID
           if [[ -n "${FIREBASE_MEASUREMENT_ID}" ]]; then
             MEASUREMENT_ID_ESCAPED=$(echo "${FIREBASE_MEASUREMENT_ID}" | sed "s/'/\\\\'/g")
@@ -157,7 +159,7 @@ EOF
           else
             MEASUREMENT_LINE="    measurementId: ''"
           fi
-          
+
           # Write the Firebase configuration properties
           cat >> src/environments/environment.prod.ts << EOF
     apiKey: '${API_KEY_ESCAPED}',
@@ -168,24 +170,24 @@ EOF
     appId: '${APP_ID_ESCAPED}',
 ${MEASUREMENT_LINE}
 EOF
-          
+
           # Close the environment object
           cat >> src/environments/environment.prod.ts << 'EOF'
   }
 };
 EOF
-          
+
           # Verify production file was created
           if [[ ! -f "src/environments/environment.prod.ts" ]]; then
             echo "❌ Failed to create environment.prod.ts"
             exit 1
           fi
-          
+
           echo "✅ Production environment file created successfully"
-          
+
           # Create development environment file with proper TypeScript structure
           echo "📝 Creating development environment file for PR preview..."
-          
+
           # Create environment file using heredoc to avoid shell interpolation issues
           cat > src/environments/environment.ts << 'EOF'
 // Generated automatically from GitHub Secrets during CI/CD (PR Preview)
@@ -195,7 +197,7 @@ export const environment = {
   production: false,
   firebase: {
 EOF
-          
+
           # Use the same escaped variables from production environment
           # Write the Firebase configuration properties
           cat >> src/environments/environment.ts << EOF
@@ -207,19 +209,19 @@ EOF
     appId: '${APP_ID_ESCAPED}',
 ${MEASUREMENT_LINE}
 EOF
-          
+
           # Close the environment object
           cat >> src/environments/environment.ts << 'EOF'
   }
 };
 EOF
-          
+
           # Verify development file was created
           if [[ ! -f "src/environments/environment.ts" ]]; then
             echo "❌ Failed to create environment.ts"
             exit 1
           fi
-          
+
           echo "✅ Development environment file created successfully"
           echo "✅ All environment files created successfully for PR preview"
 
@@ -257,13 +259,13 @@ EOF
       - name: Validate TypeScript syntax
         run: |
           echo "🔍 Validating TypeScript syntax of generated environment files for PR preview..."
-          
+
           # Install TypeScript if not already available
           if ! command -v tsc &> /dev/null; then
             echo "📦 Installing TypeScript for syntax validation..."
             npm install -g typescript
           fi
-          
+
           # Validate TypeScript syntax without compilation
           echo "Checking environment.ts..."
           if tsc --noEmit --target es2015 src/environments/environment.ts; then
@@ -274,7 +276,7 @@ EOF
             head -20 src/environments/environment.ts
             exit 1
           fi
-          
+
           echo "Checking environment.prod.ts..."
           if tsc --noEmit --target es2015 src/environments/environment.prod.ts; then
             echo "✅ environment.prod.ts has valid TypeScript syntax"
@@ -284,7 +286,7 @@ EOF
             head -20 src/environments/environment.prod.ts
             exit 1
           fi
-          
+
           echo "✅ All environment files have valid TypeScript syntax"
 
       - name: Debug environment file

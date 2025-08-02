@@ -1,16 +1,24 @@
 name: Deploy to Firebase Hosting on merge
+
 on:
   push:
     branches: [main]
+
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checkout repo
       - uses: actions/checkout@v4
+
+      # 2. Setup Node.js with npm cache
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
+
+      # 3. Generate environment.prod.ts from GitHub secrets
       - name: Create environment files
         run: |
           mkdir -p src/environments
@@ -25,10 +33,25 @@ jobs:
           echo "    appId: '${{ secrets.FIREBASE_APP_ID }}'" >> src/environments/environment.prod.ts
           echo "  }" >> src/environments/environment.prod.ts
           echo "};" >> src/environments/environment.prod.ts
+
+      # (Optional) Output the generated env file for debugging
       - name: Debug generated file
         run: cat src/environments/environment.prod.ts
-      - run: npm ci
+
+      # 4. Install ALL dependencies including devDependencies
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_ENV: development
+
+      # (Optional) Check what was installed
+      - name: List installed packages
+        run: npm ls --depth=0
+
+      # 5. Build the Angular app
       - run: npm run build
+
+      # 6. Deploy to Firebase Hosting
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
