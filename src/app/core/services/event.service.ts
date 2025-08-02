@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -28,6 +28,7 @@ import { BunnyService } from './bunny.service';
  */
 export class EventService {
   private firestore: Firestore = inject(Firestore);
+  private ngZone: NgZone = inject(NgZone);
   private configService = inject(ConfigService);
   private bunnyService = inject(BunnyService);
 
@@ -78,7 +79,7 @@ export class EventService {
       };
 
       const firestoreData = TimestampUtil.prepareForFirestore(eatingEvent);
-      const docRef = await addDoc(this.eventsCollection, firestoreData);
+      const docRef = await this.ngZone.run(() => addDoc(this.eventsCollection, firestoreData));
       eatingEvent.id = docRef.id;
 
       await this.updateBunnyHappiness(bunnyId, pointsEarned);
@@ -121,7 +122,7 @@ export class EventService {
       };
 
       const firestoreData = TimestampUtil.prepareForFirestore(playingEvent);
-      const docRef = await addDoc(this.eventsCollection, firestoreData);
+      const docRef = await this.ngZone.run(() => addDoc(this.eventsCollection, firestoreData));
       playingEvent.id = docRef.id;
 
       await Promise.all([
@@ -146,7 +147,7 @@ export class EventService {
         limit(10)
       );
 
-      const snapshot = await getDocs(q1);
+      const snapshot = await this.ngZone.run(() => getDocs(q1));
       const events = snapshot.docs.map(doc =>
         TimestampUtil.convertFirestoreDocument<BunnyEvent>({ id: doc.id, ...doc.data() })
       );
@@ -218,7 +219,7 @@ export class EventService {
         orderBy('timestamp', 'asc')
       );
 
-      const snapshot = await getDocs(q);
+      const snapshot = await this.ngZone.run(() => getDocs(q));
       const events = snapshot.docs.map(doc =>
         TimestampUtil.convertFirestoreDocument<BunnyEvent>({ id: doc.id, ...doc.data() })
       );

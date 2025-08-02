@@ -114,7 +114,7 @@ export class BunnyService {
   public async deleteBunny(bunnyId: string): Promise<boolean> {
     try {
       const bunnyDoc = doc(this.firestore, `bunnies/${bunnyId}`);
-      await deleteDoc(bunnyDoc);
+      await this.ngZone.run(() => deleteDoc(bunnyDoc));
       return true;
     } catch (error) {
       console.error('Error deleting bunny:', error);
@@ -125,7 +125,7 @@ export class BunnyService {
   public async getBunnyById(bunnyId: string): Promise<Bunny | null> {
     try {
       const bunnyDoc = doc(this.firestore, `bunnies/${bunnyId}`);
-      const docSnapshot = await getDoc(bunnyDoc);
+      const docSnapshot = await this.ngZone.run(() => getDoc(bunnyDoc));
 
       if (docSnapshot.exists()) {
         return {

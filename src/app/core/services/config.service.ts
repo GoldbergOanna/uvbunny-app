@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import {
   Firestore,
   doc,
@@ -8,8 +8,8 @@ import {
   DocumentSnapshot,
   DocumentData,
 } from '@angular/fire/firestore';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { PointsConfig } from '@core/models/bunny.model';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { PointsConfig, BunnyEvent, Bunny } from '@core/models/bunny.model';
 import { TimestampUtil } from '@shared/utils/timestamp.util';
 
 /**
@@ -22,6 +22,7 @@ import { TimestampUtil } from '@shared/utils/timestamp.util';
 })
 export class ConfigService {
   private firestore: Firestore = inject(Firestore);
+  private ngZone: NgZone = inject(NgZone);
   private configDoc = doc(this.firestore, 'config/points');
   private configSubject = new BehaviorSubject<PointsConfig | null>(null);
   public config$: Observable<PointsConfig | null> = this.configSubject.asObservable();
@@ -53,7 +54,7 @@ export class ConfigService {
 
   public async getPointsConfig(): Promise<PointsConfig> {
     try {
-      const snapshot = await getDoc(this.configDoc);
+      const snapshot = await this.ngZone.run(() => getDoc(this.configDoc));
 
       if (snapshot.exists()) {
         return TimestampUtil.convertFirestoreDocument<PointsConfig>(snapshot.data());
@@ -72,7 +73,7 @@ export class ConfigService {
       const validatedConfig = this.validateConfig(newConfig);
       const firestoreData = TimestampUtil.prepareForFirestore(validatedConfig);
 
-      await setDoc(this.configDoc, firestoreData);
+      await this.ngZone.run(() => setDoc(this.configDoc, firestoreData));
 
       await this.recalculateAllHappiness();
 
@@ -86,7 +87,7 @@ export class ConfigService {
   public async initializeDefaultConfig(): Promise<void> {
     try {
       const firestoreData = TimestampUtil.prepareForFirestore(this.defaultConfig);
-      await setDoc(this.configDoc, firestoreData);
+      await this.ngZone.run(() => setDoc(this.configDoc, firestoreData));
       this.configSubject.next(this.defaultConfig);
     } catch (error) {
       console.error('Error initializing default config:', error);
@@ -127,5 +128,106 @@ export class ConfigService {
 
   public getConfigValue(): PointsConfig {
     return this.configSubject.value || this.defaultConfig;
+  }
+
+  public getDefaultConfiguration(): PointsConfig {
+    return { ...this.defaultConfig };
+  }
+
+  public async getAffectedEventsCount(newConfig: PointsConfig): Promise<number> {
+    try {
+      const { EventService } = await import('./event.service');
+      const eventService = new EventService();
+      const events = await firstValueFrom(eventService.getAllEvents()) || [];
+      
+      return events.length;
+    } catch (error) {
+      console.error('Error getting affected events count:', error);
+      return 0;
+    }
+  }
+
+  public validateConfigValues(config: PointsConfig): boolean {
+    return Object.values(config).every(value => 
+      typeof value === 'number' && value >= 0 && !isNaN(value)
+    );
+  }
+
+  public async calculateHappinessImpact(newConfig: PointsConfig): Promise<{
+    totalBunniesAffected: number;
+    averageHappinessChange: number;
+    eventsRecalculated: number;
+  }> {
+    try {
+      const { BunnyService } = await import('./bunny.service');
+      const { EventService } = await import('./event.service');
+      const bunnyService = new BunnyService();
+      const eventService = new EventService();
+      
+      const [bunnies, events] = await Promise.all([
+        firstValueFrom(bunnyService.getBunnies()),
+        firstValueFrom(eventService.getAllEvents())
+      ]);
+
+      const bunniesList = bunnies || [];
+      const eventsList = events || [];
+      let totalHappinessChange = 0;
+      let affectedBunnies = 0;
+
+      for (const bunny of bunniesList) {
+        const bunnyEvents = eventsList.filter((event: BunnyEvent) => event.bunnyId === bunny.id);
+        if (bunnyEvents.length > 0) {
+          const currentHappiness = this.calculateBunnyHappiness(bunnyEvents, this.getConfigValue());
+          const newHappiness = this.calculateBunnyHappiness(bunnyEvents, newConfig);
+          const change = newHappiness - currentHappiness;
+          
+          if (Math.abs(change) > 0.01) {
+            totalHappinessChange += change;
+            affectedBunnies++;
+          }
+        }
+      }
+
+      return {
+        totalBunniesAffected: affectedBunnies,
+        averageHappinessChange: affectedBunnies > 0 ? totalHappinessChange / affectedBunnies : 0,
+        eventsRecalculated: eventsList.length
+      };
+    } catch (error) {
+      console.error('Error calculating happiness impact:', error);
+      return {
+        totalBunniesAffected: 0,
+        averageHappinessChange: 0,
+        eventsRecalculated: 0
+      };
+    }
+  }
+
+  private calculateBunnyHappiness(events: BunnyEvent[], config: PointsConfig): number {
+    let totalPoints = 0;
+    const playmates = new Set<string>();
+
+    for (const event of events) {
+      if (event.type === 'eating') {
+        const details = event.details as any;
+        if (details.foodType === 'lettuce') {
+          totalPoints += config.lettuce;
+        } else if (details.foodType === 'carrot') {
+          totalPoints += config.carrot;
+        }
+      } else if (event.type === 'playing') {
+        const details = event.details as any;
+        const playmateId = details.playmateBunnyId;
+        
+        if (playmates.has(playmateId)) {
+          totalPoints += config.repeatPlaying;
+        } else {
+          totalPoints += config.playing;
+          playmates.add(playmateId);
+        }
+      }
+    }
+
+    return Math.min(100, Math.max(0, totalPoints));
   }
 }

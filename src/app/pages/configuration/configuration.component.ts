@@ -8,7 +8,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { Subject, Observable, BehaviorSubject, combineLatest, firstValueFrom } from 'rxjs';
 import { takeUntil, map, catchError, startWith } from 'rxjs/operators';
 
 import { ConfigService } from '@core/services/config.service';
@@ -250,18 +250,20 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   }> {
     try {
       const [bunnies, allEvents] = await Promise.all([
-        this.bunnyService.getBunnies().pipe(takeUntil(this.destroy$)).toPromise() || [],
-        this.eventService.getAllEvents().pipe(takeUntil(this.destroy$)).toPromise() || []
+        firstValueFrom(this.bunnyService.getBunnies().pipe(takeUntil(this.destroy$))),
+        firstValueFrom(this.eventService.getAllEvents().pipe(takeUntil(this.destroy$)))
       ]);
 
+      const bunniesList = bunnies || [];
+      const eventsList = allEvents || [];
       const currentConfig = this.state$.value.currentConfig || this.defaultConfig;
       const happinessPreviews: HappinessPreview[] = [];
       const affectedBunnies: Bunny[] = [];
       let totalChange = 0;
       let eventsCount = 0;
 
-      for (const bunny of bunnies) {
-        const bunnyEvents = allEvents.filter(event => event.bunnyId === bunny.id);
+      for (const bunny of bunniesList) {
+        const bunnyEvents = eventsList.filter(event => event.bunnyId === bunny.id);
         const currentHappiness = this.calculateBunnyHappiness(bunnyEvents, currentConfig);
         const newHappiness = this.calculateBunnyHappiness(bunnyEvents, newConfig);
         const change = newHappiness - currentHappiness;
@@ -362,5 +364,18 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
   trackByPreviewId(index: number, preview: HappinessPreview): string {
     return preview.bunny.id;
+  }
+
+  // Template helper methods
+  mathAbs(value: number): number {
+    return Math.abs(value);
+  }
+
+  mathRound(value: number): number {
+    return Math.round(value);
+  }
+
+  encodeUriComponent(value: string): string {
+    return encodeURIComponent(value);
   }
 }
