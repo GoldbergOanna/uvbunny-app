@@ -1,14 +1,16 @@
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDO96Ih6M8oLIsIeyQXkDkHBT1O_oyU5Yo",
-  authDomain: "uvbunny-app.firebaseapp.com",
-  projectId: "uvbunny-app",
-  storageBucket: "uvbunny-app.firebasestorage.app",
-  messagingSenderId: "79767470037",
-  appId: "1:79767470037:web:fa0baee4f03a574964475c",
-  measurementId: "G-PE3XW2S1RF"
-};
+// IMPORTANT: Replace these placeholder values with your actual Firebase configuration
+// Get your Firebase config from: https://console.firebase.google.com/project/your-project/settings/general/
 
+const firebaseConfig = {
+  apiKey: "your-api-key-here",
+  authDomain: "your-project-id.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project-id.firebasestorage.app",
+  messagingSenderId: "your-sender-id-here",
+  appId: "your-app-id-here",
+  measurementId: "your-measurement-id-here"
+};
 
 export const environment = {
   production: false,
