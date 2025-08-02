@@ -1,11 +1,12 @@
-@import 'bootstrap/dist/css/bootstrap.min.css';
-@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -14,14 +15,14 @@ html, body {
 }
 
 :root {
-  --primary: #6b705c;         /* Olive brown – natural, stable */
-  --success: #a3b18a;         /* Sage green – soft, fresh success */
-  --background: #fefae0;      /* Warm parchment – gentle background */
-  --surface: #ffffff;         /* Clean white cards */
-  --text-primary: #3e3e3e;    /* Deep stone gray – readable but organic */
-  --text-secondary: #7c6f64;  /* Soft clay – perfect for subtitles */
-  --border: #d6ccc2;          /* Warm beige-gray – light & natural */
-  --shadow: 0 2px 6px rgba(107, 112, 92, 0.12); /* greenish-brown shadow */
+  --primary: #6b705c;
+  --success: #a3b18a;
+  --background: #fefae0;
+  --surface: #ffffff;
+  --text-primary: #3e3e3e;
+  --text-secondary: #7c6f64;
+  --border: #d6ccc2;
+  --shadow: 0 2px 6px rgba(107, 112, 92, 0.12);
   --shadow-hover: 0 6px 20px rgba(107, 112, 92, 0.18);
   --border-radius: 10px;
   --transition: all 0.2s ease;
