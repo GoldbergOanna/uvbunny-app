@@ -17,8 +17,8 @@ body {
 :root {
   --primary: #6b705c;
   --success: #a3b18a;
-  --background: #fefae0;
-  --surface: #ffffff;
+  --background: #e3dbd1;
+  --surface: #f5f2f2;
   --text-primary: #3e3e3e;
   --text-secondary: #7c6f64;
   --border: #d6ccc2;
@@ -44,6 +44,8 @@ body {
   padding-left: 1rem;
   padding-right: 1rem;
   max-width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 @media (min-width: 576px) {
