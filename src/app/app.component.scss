@@ -3,6 +3,8 @@
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow);
   position: sticky;
+  display: inline-block;
+  width: 100%;
   top: 0;
   z-index: 1000;
   transition: var(--transition);
