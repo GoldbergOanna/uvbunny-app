@@ -15,7 +15,7 @@ jobs:
       # 2. Setup Node.js with npm cache
       - uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
 
       # 3. Generate environment.prod.ts from GitHub secrets
