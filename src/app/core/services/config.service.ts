@@ -1,4 +1,4 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject, NgZone, Injector, runInInjectionContext } from '@angular/core';
 import {
   Firestore,
   doc,
@@ -23,6 +23,7 @@ import { TimestampUtil } from '@shared/utils/timestamp.util';
 export class ConfigService {
   private firestore: Firestore = inject(Firestore);
   private ngZone: NgZone = inject(NgZone);
+  private injector: Injector = inject(Injector);
   private configDoc = doc(this.firestore, 'config/points');
   private configSubject = new BehaviorSubject<PointsConfig | null>(null);
   public config$: Observable<PointsConfig | null> = this.configSubject.asObservable();
@@ -39,7 +40,7 @@ export class ConfigService {
   }
 
   private initializeConfig(): void {
-    onSnapshot(this.configDoc, (snapshot: DocumentSnapshot<DocumentData>) => {
+    this.ngZone.run(() => onSnapshot(this.configDoc, (snapshot: DocumentSnapshot<DocumentData>) => {
       if (snapshot.exists()) {
         const data = TimestampUtil.convertFirestoreDocument<PointsConfig>(snapshot.data());
         this.configSubject.next(data);
@@ -49,7 +50,7 @@ export class ConfigService {
     }, (error) => {
       console.error('Error listening to config changes:', error);
       this.configSubject.next(this.defaultConfig);
-    });
+    }));
   }
 
   public async getPointsConfig(): Promise<PointsConfig> {
@@ -98,10 +99,11 @@ export class ConfigService {
   public async recalculateAllHappiness(): Promise<void> {
     try {
       console.log('Triggering happiness recalculation due to config change...');
-
       const { EventService } = await import('./event.service');
-      const eventService = new EventService();
-      await eventService.recalculateAllBunniesHappiness();
+      await runInInjectionContext(this.injector, async () => {
+        const eventService = inject(EventService);
+        await eventService.recalculateAllBunniesHappiness();
+      });
     } catch (error) {
       console.error('Error triggering happiness recalculation:', error);
     }
@@ -137,10 +139,11 @@ export class ConfigService {
   public async getAffectedEventsCount(newConfig: PointsConfig): Promise<number> {
     try {
       const { EventService } = await import('./event.service');
-      const eventService = new EventService();
-      const events = await firstValueFrom(eventService.getAllEvents()) || [];
-      
-      return events.length;
+      return await runInInjectionContext(this.injector, async () => {
+        const eventService = inject(EventService);
+        const events = await firstValueFrom(eventService.getAllEvents()) || [];
+        return events.length;
+      });
     } catch (error) {
       console.error('Error getting affected events count:', error);
       return 0;
@@ -161,38 +164,41 @@ export class ConfigService {
     try {
       const { BunnyService } = await import('./bunny.service');
       const { EventService } = await import('./event.service');
-      const bunnyService = new BunnyService();
-      const eventService = new EventService();
       
-      const [bunnies, events] = await Promise.all([
-        firstValueFrom(bunnyService.getBunnies()),
-        firstValueFrom(eventService.getAllEvents())
-      ]);
+      return await runInInjectionContext(this.injector, async () => {
+        const bunnyService = inject(BunnyService);
+        const eventService = inject(EventService);
+        
+        const [bunnies, events] = await Promise.all([
+          firstValueFrom(bunnyService.getBunnies()),
+          firstValueFrom(eventService.getAllEvents())
+        ]);
 
-      const bunniesList = bunnies || [];
-      const eventsList = events || [];
-      let totalHappinessChange = 0;
-      let affectedBunnies = 0;
+        const bunniesList = bunnies || [];
+        const eventsList = events || [];
+        let totalHappinessChange = 0;
+        let affectedBunnies = 0;
 
-      for (const bunny of bunniesList) {
-        const bunnyEvents = eventsList.filter((event: BunnyEvent) => event.bunnyId === bunny.id);
-        if (bunnyEvents.length > 0) {
-          const currentHappiness = this.calculateBunnyHappiness(bunnyEvents, this.getConfigValue());
-          const newHappiness = this.calculateBunnyHappiness(bunnyEvents, newConfig);
-          const change = newHappiness - currentHappiness;
-          
-          if (Math.abs(change) > 0.01) {
-            totalHappinessChange += change;
-            affectedBunnies++;
+        for (const bunny of bunniesList) {
+          const bunnyEvents = eventsList.filter((event: BunnyEvent) => event.bunnyId === bunny.id);
+          if (bunnyEvents.length > 0) {
+            const currentHappiness = this.calculateBunnyHappiness(bunnyEvents, this.getConfigValue());
+            const newHappiness = this.calculateBunnyHappiness(bunnyEvents, newConfig);
+            const change = newHappiness - currentHappiness;
+            
+            if (Math.abs(change) > 0.01) {
+              totalHappinessChange += change;
+              affectedBunnies++;
+            }
           }
         }
-      }
 
-      return {
-        totalBunniesAffected: affectedBunnies,
-        averageHappinessChange: affectedBunnies > 0 ? totalHappinessChange / affectedBunnies : 0,
-        eventsRecalculated: eventsList.length
-      };
+        return {
+          totalBunniesAffected: affectedBunnies,
+          averageHappinessChange: affectedBunnies > 0 ? totalHappinessChange / affectedBunnies : 0,
+          eventsRecalculated: eventsList.length
+        };
+      });
     } catch (error) {
       console.error('Error calculating happiness impact:', error);
       return {

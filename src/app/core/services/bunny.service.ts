@@ -50,8 +50,26 @@ export class BunnyService {
     return this.bunnies$;
   }
 
+  public async checkNameExists(name: string): Promise<boolean> {
+    try {
+      const currentBunnies = this.bunniesSubject.value;
+      return currentBunnies.some(bunny => 
+        bunny.name.toLowerCase().trim() === name.toLowerCase().trim()
+      );
+    } catch (error) {
+      console.error('Error checking name existence:', error);
+      return false;
+    }
+  }
+
   public async addBunny(bunnyData: Omit<Bunny, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> {
     try {
+      // Check if name already exists
+      const nameExists = await this.checkNameExists(bunnyData.name);
+      if (nameExists) {
+        throw new Error('DUPLICATE_NAME');
+      }
+
       const now = new Date();
 
       const data = { ...bunnyData };
@@ -77,6 +95,9 @@ export class BunnyService {
       return docRef.id;
     } catch (error) {
       console.error('Error adding bunny:', error);
+      if (error instanceof Error && error.message === 'DUPLICATE_NAME') {
+        throw error;
+      }
       return null;
     }
   }

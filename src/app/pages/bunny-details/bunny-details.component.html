@@ -262,8 +262,8 @@
               <span class="event-description">{{
                 getEventDescription(event)
               }}</span>
-              <span class="event-points" *ngIf="event.pointsEarned > 0">
-                +{{ event.pointsEarned }} points
+              <span class="event-points" *ngIf="getCurrentEventPoints(event) > 0">
+                +{{ getCurrentEventPoints(event) }} points
               </span>
             </div>
             <div class="event-time">{{ formatEventTime(event.timestamp) }}</div>

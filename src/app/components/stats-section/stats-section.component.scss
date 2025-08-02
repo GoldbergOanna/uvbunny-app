@@ -22,7 +22,7 @@
     .stat-icon {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, var(--primary), #3b82f6);
+      background: linear-gradient(135deg, var(--primary), #888888);
       border-radius: var(--border-radius);
       display: flex;
       align-items: center;
@@ -57,14 +57,14 @@
     flex-wrap: wrap;
     margin: 0 -0.75rem;
   }
-  
+
   .col-12.col-md-4 {
     flex: 0 0 100%;
     max-width: 100%;
     padding: 0 0.75rem;
     margin-bottom: 1.5rem;
   }
-  
+
   @media (min-width: 768px) {
     .col-12.col-md-4 {
       flex: 0 0 33.333333%;
