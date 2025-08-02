@@ -171,6 +171,46 @@ src/
    - Project Settings → General → Add app → Web
    - Copy configuration to `src/environments/environment.ts`
 
+## 🔐 Environment Setup for Developers
+
+### Important Security Note
+**Never commit real API keys to the repository.** This project uses environment files that are excluded from version control to protect sensitive Firebase configuration.
+
+### Initial Setup
+
+1. **Copy the example environment file:**
+   ```bash
+   cp src/environments/environment.example.ts src/environments/environment.ts
+   cp src/environments/environment.example.ts src/environments/environment.prod.ts
+   ```
+
+2. **Get your Firebase configuration:**
+   - Go to [Firebase Console](https://console.firebase.google.com)
+   - Select your project
+   - Go to Project Settings (gear icon) → General tab
+   - Scroll down to "Your apps" section
+   - Click on the web app icon or "Add app" if none exists
+   - Copy the Firebase configuration object
+
+3. **Update environment files:**
+   - Replace placeholder values in `src/environments/environment.ts` with your actual Firebase config
+   - Replace placeholder values in `src/environments/environment.prod.ts` with your actual Firebase config
+   - Make sure `production: false` in environment.ts and `production: true` in environment.prod.ts
+
+### GitHub Secrets for CI/CD
+
+For automated deployment, add these secrets to your GitHub repository:
+
+1. **Go to repository Settings → Secrets and variables → Actions**
+2. **Add the following secrets:**
+   - `FIREBASE_API_KEY`: Your Firebase API key
+   - `FIREBASE_AUTH_DOMAIN`: Your Firebase auth domain
+   - `FIREBASE_PROJECT_ID`: Your Firebase project ID
+   - `FIREBASE_STORAGE_BUCKET`: Your Firebase storage bucket
+   - `FIREBASE_MESSAGING_SENDER_ID`: Your Firebase messaging sender ID
+   - `FIREBASE_APP_ID`: Your Firebase app ID
+   - `FIREBASE_MEASUREMENT_ID`: Your Firebase measurement ID
+
 ## 🛠️ Development Workflow
 
 ### Branch Strategy
