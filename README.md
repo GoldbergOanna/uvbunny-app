@@ -211,6 +211,21 @@ For automated deployment, add these secrets to your GitHub repository:
    - `FIREBASE_APP_ID`: Your Firebase app ID
    - `FIREBASE_MEASUREMENT_ID`: Your Firebase measurement ID
 
+### Security Cleanup Script
+
+If you need to remove API keys from git history (after they've been accidentally committed), use the provided cleanup script:
+
+```bash
+# WARNING: This rewrites git history and requires team coordination
+./cleanup-secrets.sh
+```
+
+**Important Notes:**
+- This script will rewrite git history and force push to remote
+- All team members will need to delete and re-clone the repository
+- Only run this if API keys were previously committed to the repository
+- Make sure all team members are aware before running
+
 ## 🛠️ Development Workflow
 
 ### Branch Strategy
