@@ -43,7 +43,7 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP_2025 }}
         run: |
           echo "🔍 Validating required GitHub Secrets for PR preview..."
           MISSING_SECRETS=()
@@ -287,6 +287,21 @@ EOF
           
           echo "✅ All environment files have valid TypeScript syntax"
 
+      - name: Debug environment file
+        run: |
+          echo "🔍 Debugging generated environment files for PR preview..."
+          echo ""
+          echo "=== Generated environment.prod.ts ==="
+          cat src/environments/environment.prod.ts
+          echo "=== End of production file ==="
+          echo ""
+          echo "=== Generated environment.ts ==="
+          cat src/environments/environment.ts
+          echo "=== End of development file ==="
+          echo ""
+          echo "📊 File sizes:"
+          ls -la src/environments/
+
       - name: Build application for preview
         run: |
           echo "🏗️ Building application for PR preview..."
@@ -295,11 +310,11 @@ EOF
       - name: Deploy to Firebase Hosting Preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP_2025 }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP_2025 }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
 
       - name: Cleanup environment files

@@ -13,26 +13,275 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-      - name: Create environment files
+          
+      - name: Validate required secrets
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         run: |
+          echo "🔍 Validating required GitHub Secrets..."
+          MISSING_SECRETS=()
+          
+          # Check required secrets using environment variables for safe handling
+          if [[ -z "${FIREBASE_API_KEY}" ]]; then
+            MISSING_SECRETS+=("FIREBASE_API_KEY")
+          fi
+          if [[ -z "${FIREBASE_AUTH_DOMAIN}" ]]; then
+            MISSING_SECRETS+=("FIREBASE_AUTH_DOMAIN")
+          fi
+          if [[ -z "${FIREBASE_PROJECT_ID}" ]]; then
+            MISSING_SECRETS+=("FIREBASE_PROJECT_ID")
+          fi
+          if [[ -z "${FIREBASE_STORAGE_BUCKET}" ]]; then
+            MISSING_SECRETS+=("FIREBASE_STORAGE_BUCKET")
+          fi
+          if [[ -z "${FIREBASE_MESSAGING_SENDER_ID}" ]]; then
+            MISSING_SECRETS+=("FIREBASE_MESSAGING_SENDER_ID")
+          fi
+          if [[ -z "${FIREBASE_APP_ID}" ]]; then
+            MISSING_SECRETS+=("FIREBASE_APP_ID")
+          fi
+          
+          # FIREBASE_MEASUREMENT_ID is optional for Google Analytics
+          if [[ -z "${FIREBASE_MEASUREMENT_ID}" ]]; then
+            echo "⚠️  FIREBASE_MEASUREMENT_ID is not set (Google Analytics will be disabled)"
+          fi
+          
+          if [[ ${#MISSING_SECRETS[@]} -ne 0 ]]; then
+            echo "❌ Missing required GitHub Secrets:"
+            printf "%s\n" "${MISSING_SECRETS[@]}"
+            echo ""
+            echo "Please add these secrets in repository Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          
+          echo "✅ All required secrets are configured"
+          
+      - name: Create environment files
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+        run: |
+          echo "🔧 Creating environment files from GitHub Secrets..."
+          
+          # Validate that all required environment variables are set
+          if [[ -z "${FIREBASE_API_KEY}" || -z "${FIREBASE_AUTH_DOMAIN}" || -z "${FIREBASE_PROJECT_ID}" || -z "${FIREBASE_STORAGE_BUCKET}" || -z "${FIREBASE_MESSAGING_SENDER_ID}" || -z "${FIREBASE_APP_ID}" ]]; then
+            echo "❌ One or more required Firebase environment variables are missing"
+            echo "This should have been caught in the validation step"
+            exit 1
+          fi
+          
+          # Set fallback for optional measurement ID
+          if [[ -n "${FIREBASE_MEASUREMENT_ID}" ]]; then
+            MEASUREMENT_ID="'${FIREBASE_MEASUREMENT_ID}'"
+          else
+            MEASUREMENT_ID="''"
+          fi
+          
+          echo "📁 Creating environments directory..."
           mkdir -p src/environments
-          cat > src/environments/environment.prod.ts << 'ENVEOF'
-          export const environment = {
-            production: true,
-            firebase: {
-              apiKey: "${{ secrets.FIREBASE_API_KEY }}",
-              authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
-              projectId: "${{ secrets.FIREBASE_PROJECT_ID }}",
-              storageBucket: "${{ secrets.FIREBASE_STORAGE_BUCKET }}",
-              messagingSenderId: "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
-              appId: "${{ secrets.FIREBASE_APP_ID }}"
-            }
-          };
-          ENVEOF
+          
+          if [[ ! -d "src/environments" ]]; then
+            echo "❌ Failed to create src/environments directory"
+            exit 1
+          fi
+          
+          echo "✅ Directory src/environments/ created successfully"
+          
+          # Create production environment file with proper escaping
+          echo "📝 Creating production environment file..."
+          
+          # Escape any single quotes in the secret values to prevent syntax errors
+          API_KEY_ESCAPED=$(echo "${FIREBASE_API_KEY}" | sed "s/'/\\\\'/g")
+          AUTH_DOMAIN_ESCAPED=$(echo "${FIREBASE_AUTH_DOMAIN}" | sed "s/'/\\\\'/g")
+          PROJECT_ID_ESCAPED=$(echo "${FIREBASE_PROJECT_ID}" | sed "s/'/\\\\'/g")
+          STORAGE_BUCKET_ESCAPED=$(echo "${FIREBASE_STORAGE_BUCKET}" | sed "s/'/\\\\'/g")
+          MESSAGING_SENDER_ID_ESCAPED=$(echo "${FIREBASE_MESSAGING_SENDER_ID}" | sed "s/'/\\\\'/g")
+          APP_ID_ESCAPED=$(echo "${FIREBASE_APP_ID}" | sed "s/'/\\\\'/g")
+          
+          if [[ -n "${FIREBASE_MEASUREMENT_ID}" ]]; then
+            MEASUREMENT_ID_ESCAPED=$(echo "${FIREBASE_MEASUREMENT_ID}" | sed "s/'/\\\\'/g")
+            MEASUREMENT_LINE="    measurementId: '${MEASUREMENT_ID_ESCAPED}'"
+          else
+            MEASUREMENT_LINE="    measurementId: ''"
+          fi
+          
+          # Create environment file using heredoc to avoid shell interpolation issues
+          cat > src/environments/environment.prod.ts << 'EOF'
+// Generated automatically from GitHub Secrets during CI/CD
+// DO NOT EDIT - This file is created during the build process
+
+export const environment = {
+  production: true,
+  firebase: {
+EOF
+          
+          # Write the Firebase configuration properties with proper escaping
+          cat >> src/environments/environment.prod.ts << EOF
+    apiKey: '${API_KEY_ESCAPED}',
+    authDomain: '${AUTH_DOMAIN_ESCAPED}',
+    projectId: '${PROJECT_ID_ESCAPED}',
+    storageBucket: '${STORAGE_BUCKET_ESCAPED}',
+    messagingSenderId: '${MESSAGING_SENDER_ID_ESCAPED}',
+    appId: '${APP_ID_ESCAPED}',
+${MEASUREMENT_LINE}
+EOF
+          
+          # Close the environment object
+          cat >> src/environments/environment.prod.ts << 'EOF'
+  }
+};
+EOF
+          
+          # Verify production file was created
+          if [[ ! -f "src/environments/environment.prod.ts" ]]; then
+            echo "❌ Failed to create environment.prod.ts"
+            exit 1
+          fi
+          
+          echo "✅ Production environment file created successfully"
+          
+          # Also create development environment file for consistency
+          echo "📝 Creating development environment file..."
+          
+          cat > src/environments/environment.ts << 'EOF'
+// Generated automatically from GitHub Secrets during CI/CD
+// DO NOT EDIT - This file is created during the build process
+
+export const environment = {
+  production: false,
+  firebase: {
+EOF
+          
+          # Write the same Firebase configuration for development
+          cat >> src/environments/environment.ts << EOF
+    apiKey: '${API_KEY_ESCAPED}',
+    authDomain: '${AUTH_DOMAIN_ESCAPED}',
+    projectId: '${PROJECT_ID_ESCAPED}',
+    storageBucket: '${STORAGE_BUCKET_ESCAPED}',
+    messagingSenderId: '${MESSAGING_SENDER_ID_ESCAPED}',
+    appId: '${APP_ID_ESCAPED}',
+${MEASUREMENT_LINE}
+EOF
+          
+          # Close the environment object
+          cat >> src/environments/environment.ts << 'EOF'
+  }
+};
+EOF
+          
+          # Verify development file was created
+          if [[ ! -f "src/environments/environment.ts" ]]; then
+            echo "❌ Failed to create environment.ts"
+            exit 1
+          fi
+          
+          echo "✅ Development environment file created successfully"
+          echo "✅ All environment files created successfully"
+      - name: Debug environment file
+        run: |
+          echo "🔍 Debugging generated environment files..."
+          echo ""
+          echo "=== Generated environment.prod.ts ==="
+          cat src/environments/environment.prod.ts
+          echo "=== End of production file ==="
+          echo ""
+          echo "=== Generated environment.ts ==="
+          cat src/environments/environment.ts
+          echo "=== End of development file ==="
+          echo ""
+          echo "📊 File sizes:"
+          ls -la src/environments/
+          
+      - name: Validate environment files structure
+        run: |
+          echo "🔍 Validating environment file structure..."
+          
+          # Check if files contain the expected structure (without revealing secrets)
+          if grep -q "export const environment" src/environments/environment.ts && \
+             grep -q "production: false" src/environments/environment.ts; then
+            echo "✅ environment.ts has correct structure"
+          else
+            echo "❌ environment.ts has incorrect structure"
+            exit 1
+          fi
+
+          if grep -q "export const environment" src/environments/environment.prod.ts && \
+             grep -q "production: true" src/environments/environment.prod.ts; then
+            echo "✅ environment.prod.ts has correct structure"
+          else
+            echo "❌ environment.prod.ts has incorrect structure"
+            exit 1
+          fi
+          
+          # Check Firebase config properties are present
+          for file in src/environments/environment.ts src/environments/environment.prod.ts; do
+            echo "Checking Firebase properties in $file:"
+            if grep -q "apiKey:" "$file"; then
+              echo "  ✅ apiKey found"
+            else
+              echo "  ❌ apiKey missing"
+              exit 1
+            fi
+            if grep -q "projectId:" "$file"; then
+              echo "  ✅ projectId found"
+            else
+              echo "  ❌ projectId missing"
+              exit 1
+            fi
+          done
+          
+      - name: Validate TypeScript syntax
+        run: |
+          echo "🔍 Validating TypeScript syntax of generated environment files..."
+          
+          # Install TypeScript if not already available
+          if ! command -v npx &> /dev/null || ! npx tsc --version &> /dev/null; then
+            echo "📦 Installing TypeScript for syntax validation..."
+            npm install -g typescript
+          fi
+          
+          # Validate TypeScript syntax without compilation
+          echo "Checking environment.ts..."
+          if npx tsc --noEmit --target es2015 src/environments/environment.ts; then
+            echo "✅ environment.ts has valid TypeScript syntax"
+          else
+            echo "❌ environment.ts has TypeScript syntax errors"
+            echo "File contents (first 20 lines):"
+            head -20 src/environments/environment.ts
+            exit 1
+          fi
+          
+          echo "Checking environment.prod.ts..."
+          if npx tsc --noEmit --target es2015 src/environments/environment.prod.ts; then
+            echo "✅ environment.prod.ts has valid TypeScript syntax"
+          else
+            echo "❌ environment.prod.ts has TypeScript syntax errors"
+            echo "File contents (first 20 lines):"
+            head -20 src/environments/environment.prod.ts
+            exit 1
+          fi
+          
+          echo "✅ All environment files have valid TypeScript syntax"
+          
       - name: Install dependencies
         run: npm ci
-      - name: Build
-        run: npm run build
+        
+      - name: Build application
+        run: |
+          echo "🏗️ Building application for production..."
+          npm run build
+          
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -40,3 +289,11 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP_2025 }}
           channelId: live
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          
+      - name: Cleanup environment files
+        if: always()
+        run: |
+          echo "🧹 Cleaning up generated environment files..."
+          rm -f src/environments/environment.ts
+          rm -f src/environments/environment.prod.ts
+          echo "✅ Cleanup completed"
