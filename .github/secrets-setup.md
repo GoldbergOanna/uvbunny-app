@@ -187,6 +187,19 @@ FIREBASE_PROJECT_ID
 2. **Verify Secret Values**: Make sure secrets contain actual values, not placeholders
 3. **Repository Permissions**: Ensure you have admin access to configure secrets
 
+### Issue: Bash Syntax Errors in Workflows
+
+**Symptoms:**
+```
+/bin/bash: line 1: [: too many arguments
+Error: Process completed with exit code 2
+```
+
+**Solutions:**
+1. **Updated Workflows**: The current workflows use environment variables instead of direct secret interpolation
+2. **Validation Script**: Run `.github/validate-workflows.sh` locally to check for syntax issues
+3. **Proper Quoting**: All secret values are now properly escaped and quoted
+
 ### Issue: "Firebase Service Account Error"
 
 **Symptoms:**
@@ -284,7 +297,28 @@ firebase use
 
 # Test Firebase configuration locally
 firebase emulators:start
+
+# Validate workflow files locally
+./.github/validate-workflows.sh
 ```
+
+### Workflow Validation
+
+Before committing changes to workflow files, run the validation script:
+
+```bash
+# Make the script executable (if needed)
+chmod +x .github/validate-workflows.sh
+
+# Run validation
+./.github/validate-workflows.sh
+```
+
+This script checks for:
+- YAML syntax errors
+- Bash syntax errors in embedded scripts
+- Common GitHub Actions issues
+- Proper secret handling patterns
 
 ### Support Channels
 - **Project Issues**: [GitHub Issues](https://github.com/goldbergoanna/uvbunny-app/issues)

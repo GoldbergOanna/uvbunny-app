@@ -31,36 +31,48 @@ jobs:
           cache: 'npm'
 
       - name: Validate required secrets
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
         run: |
           echo "🔍 Validating required GitHub Secrets..."
           MISSING_SECRETS=()
           
-          if [ -z "${{ secrets.FIREBASE_API_KEY }}" ]; then
+          # Check required secrets using environment variables for safe handling
+          if [[ -z "${FIREBASE_API_KEY}" ]]; then
             MISSING_SECRETS+=("FIREBASE_API_KEY")
           fi
-          if [ -z "${{ secrets.FIREBASE_AUTH_DOMAIN }}" ]; then
+          if [[ -z "${FIREBASE_AUTH_DOMAIN}" ]]; then
             MISSING_SECRETS+=("FIREBASE_AUTH_DOMAIN")
           fi
-          if [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ]; then
+          if [[ -z "${FIREBASE_PROJECT_ID}" ]]; then
             MISSING_SECRETS+=("FIREBASE_PROJECT_ID")
           fi
-          if [ -z "${{ secrets.FIREBASE_STORAGE_BUCKET }}" ]; then
+          if [[ -z "${FIREBASE_STORAGE_BUCKET}" ]]; then
             MISSING_SECRETS+=("FIREBASE_STORAGE_BUCKET")
           fi
-          if [ -z "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" ]; then
+          if [[ -z "${FIREBASE_MESSAGING_SENDER_ID}" ]]; then
             MISSING_SECRETS+=("FIREBASE_MESSAGING_SENDER_ID")
           fi
-          if [ -z "${{ secrets.FIREBASE_APP_ID }}" ]; then
+          if [[ -z "${FIREBASE_APP_ID}" ]]; then
             MISSING_SECRETS+=("FIREBASE_APP_ID")
           fi
-          if [ -z "${{ secrets.FIREBASE_MEASUREMENT_ID }}" ]; then
-            MISSING_SECRETS+=("FIREBASE_MEASUREMENT_ID")
-          fi
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}" ]; then
+          if [[ -z "${FIREBASE_SERVICE_ACCOUNT}" ]]; then
             MISSING_SECRETS+=("FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP")
           fi
           
-          if [ ${#MISSING_SECRETS[@]} -ne 0 ]; then
+          # FIREBASE_MEASUREMENT_ID is optional for Google Analytics
+          if [[ -z "${FIREBASE_MEASUREMENT_ID}" ]]; then
+            echo "⚠️  FIREBASE_MEASUREMENT_ID is not set (Google Analytics will be disabled)"
+          fi
+          
+          if [[ ${#MISSING_SECRETS[@]} -ne 0 ]]; then
             echo "❌ Missing required GitHub Secrets:"
             printf '%s\n' "${MISSING_SECRETS[@]}"
             echo ""
@@ -75,66 +87,100 @@ jobs:
         run: npm ci
 
       - name: Create environment files from secrets
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         run: |
           echo "🔧 Creating environment files from GitHub Secrets..."
           
-          # Create production environment file
-          cat > src/environments/environment.prod.ts << EOF
-          // Generated automatically from GitHub Secrets during CI/CD
-          // DO NOT EDIT - This file is created during the build process
+          # Validate that all required environment variables are set
+          if [[ -z "${FIREBASE_API_KEY}" || -z "${FIREBASE_AUTH_DOMAIN}" || -z "${FIREBASE_PROJECT_ID}" || -z "${FIREBASE_STORAGE_BUCKET}" || -z "${FIREBASE_MESSAGING_SENDER_ID}" || -z "${FIREBASE_APP_ID}" ]]; then
+            echo "❌ One or more required Firebase environment variables are missing"
+            echo "This should have been caught in the validation step"
+            exit 1
+          fi
           
-          const firebaseConfig = {
-            apiKey: "${{ secrets.FIREBASE_API_KEY }}",
-            authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
-            projectId: "${{ secrets.FIREBASE_PROJECT_ID }}",
-            storageBucket: "${{ secrets.FIREBASE_STORAGE_BUCKET }}",
-            messagingSenderId: "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
-            appId: "${{ secrets.FIREBASE_APP_ID }}",
-            measurementId: "${{ secrets.FIREBASE_MEASUREMENT_ID }}"
-          };
+          # Set fallback for optional measurement ID
+          MEASUREMENT_ID="${FIREBASE_MEASUREMENT_ID:-\"\"}"
+          if [[ -z "${FIREBASE_MEASUREMENT_ID}" ]]; then
+            echo "ℹ️  Using empty string for measurementId (Google Analytics disabled)"
+          fi
           
-          export const environment = {
-            production: true,
-            firebase: {
-              apiKey: firebaseConfig.apiKey,
-              authDomain: firebaseConfig.authDomain,
-              projectId: firebaseConfig.projectId,
-              storageBucket: firebaseConfig.storageBucket,
-              messagingSenderId: firebaseConfig.messagingSenderId,
-              appId: firebaseConfig.appId,
-              measurementId: firebaseConfig.measurementId,
-            }
-          };
-          EOF
+          # Ensure environments directory exists
+          mkdir -p src/environments
           
-          # Create development environment file (same config for build)
-          cat > src/environments/environment.ts << EOF
-          // Generated automatically from GitHub Secrets during CI/CD
-          // DO NOT EDIT - This file is created during the build process
+          # Create production environment file with proper escaping
+          cat > src/environments/environment.prod.ts << 'ENV_EOF'
+// Generated automatically from GitHub Secrets during CI/CD
+// DO NOT EDIT - This file is created during the build process
+
+const firebaseConfig = {
+ENV_EOF
           
-          const firebaseConfig = {
-            apiKey: "${{ secrets.FIREBASE_API_KEY }}",
-            authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
-            projectId: "${{ secrets.FIREBASE_PROJECT_ID }}",
-            storageBucket: "${{ secrets.FIREBASE_STORAGE_BUCKET }}",
-            messagingSenderId: "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
-            appId: "${{ secrets.FIREBASE_APP_ID }}",
-            measurementId: "${{ secrets.FIREBASE_MEASUREMENT_ID }}"
-          };
+          # Add configuration values with proper escaping
+          echo "  apiKey: \"${FIREBASE_API_KEY}\"," >> src/environments/environment.prod.ts
+          echo "  authDomain: \"${FIREBASE_AUTH_DOMAIN}\"," >> src/environments/environment.prod.ts
+          echo "  projectId: \"${FIREBASE_PROJECT_ID}\"," >> src/environments/environment.prod.ts
+          echo "  storageBucket: \"${FIREBASE_STORAGE_BUCKET}\"," >> src/environments/environment.prod.ts
+          echo "  messagingSenderId: \"${FIREBASE_MESSAGING_SENDER_ID}\"," >> src/environments/environment.prod.ts
+          echo "  appId: \"${FIREBASE_APP_ID}\"," >> src/environments/environment.prod.ts
+          echo "  measurementId: ${MEASUREMENT_ID}" >> src/environments/environment.prod.ts
           
-          export const environment = {
-            production: false,
-            firebase: {
-              apiKey: firebaseConfig.apiKey,
-              authDomain: firebaseConfig.authDomain,
-              projectId: firebaseConfig.projectId,
-              storageBucket: firebaseConfig.storageBucket,
-              messagingSenderId: firebaseConfig.messagingSenderId,
-              appId: firebaseConfig.appId,
-              measurementId: firebaseConfig.measurementId,
-            }
-          };
-          EOF
+          cat >> src/environments/environment.prod.ts << 'ENV_EOF'
+};
+
+export const environment = {
+  production: true,
+  firebase: {
+    apiKey: firebaseConfig.apiKey,
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    messagingSenderId: firebaseConfig.messagingSenderId,
+    appId: firebaseConfig.appId,
+    measurementId: firebaseConfig.measurementId,
+  }
+};
+ENV_EOF
+          
+          # Create development environment file with proper escaping
+          cat > src/environments/environment.ts << 'ENV_EOF'
+// Generated automatically from GitHub Secrets during CI/CD
+// DO NOT EDIT - This file is created during the build process
+
+const firebaseConfig = {
+ENV_EOF
+          
+          # Add configuration values with proper escaping
+          echo "  apiKey: \"${FIREBASE_API_KEY}\"," >> src/environments/environment.ts
+          echo "  authDomain: \"${FIREBASE_AUTH_DOMAIN}\"," >> src/environments/environment.ts
+          echo "  projectId: \"${FIREBASE_PROJECT_ID}\"," >> src/environments/environment.ts
+          echo "  storageBucket: \"${FIREBASE_STORAGE_BUCKET}\"," >> src/environments/environment.ts
+          echo "  messagingSenderId: \"${FIREBASE_MESSAGING_SENDER_ID}\"," >> src/environments/environment.ts
+          echo "  appId: \"${FIREBASE_APP_ID}\"," >> src/environments/environment.ts
+          echo "  measurementId: ${MEASUREMENT_ID}" >> src/environments/environment.ts
+          
+          cat >> src/environments/environment.ts << 'ENV_EOF'
+};
+
+export const environment = {
+  production: false,
+  firebase: {
+    apiKey: firebaseConfig.apiKey,
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    messagingSenderId: firebaseConfig.messagingSenderId,
+    appId: firebaseConfig.appId,
+    measurementId: firebaseConfig.measurementId,
+  }
+};
+ENV_EOF
           
           echo "✅ Environment files created successfully"
 
@@ -176,6 +222,9 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
