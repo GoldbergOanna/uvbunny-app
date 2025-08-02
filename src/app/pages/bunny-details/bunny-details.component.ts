@@ -104,8 +104,9 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
     return combineLatest([
       this.bunnyService.getBunnies(),
       this.eventService.getBunnyEvents(bunnyId),
+      this.configService.config$,
     ]).pipe(
-      switchMap(([allBunnies, events]) => {
+      switchMap(([allBunnies, events, config]) => {
         const bunny = allBunnies.find((b) => b.id === bunnyId);
 
         if (!bunny) {
@@ -354,5 +355,28 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
 
   trackByBunnyId(index: number, bunny: Bunny): string {
     return bunny.id;
+  }
+
+  getCurrentEventPoints(event: BunnyEvent): number {
+    const currentConfig = this.configService.getCurrentConfig();
+    if (!currentConfig) return event.pointsEarned;
+
+    if (event.type === 'eating') {
+      const details = event.details as any;
+      if (details.foodType === 'lettuce') {
+        return currentConfig.lettuce;
+      } else if (details.foodType === 'carrot') {
+        return currentConfig.carrot;
+      }
+    } else if (event.type === 'playing') {
+      const details = event.details as any;
+      if (details.isRepeatPlay) {
+        return currentConfig.repeatPlaying;
+      } else {
+        return currentConfig.playing;
+      }
+    }
+
+    return event.pointsEarned;
   }
 }

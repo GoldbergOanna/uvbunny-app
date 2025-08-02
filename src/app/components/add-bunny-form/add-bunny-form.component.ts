@@ -5,7 +5,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { Observable, of } from 'rxjs';
-import { map, startWith, catchError } from 'rxjs/operators';
+import { map, startWith, catchError, takeUntil } from 'rxjs/operators';
 
 import { BunnyService } from '@core/services/bunny.service';
 import { DashboardStateService } from '@core/services/dashboard-state.service';
@@ -46,7 +46,29 @@ export class AddBunnyFormComponent implements OnDestroy {
     ],
   });
 
+  private duplicateNameError = false;
+
+  constructor() {
+    // Clear duplicate name error when user starts typing
+    this.addBunnyForm.get('name')?.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      if (this.duplicateNameError) {
+        this.duplicateNameError = false;
+        const nameControl = this.addBunnyForm.get('name');
+        if (nameControl?.hasError('duplicateName')) {
+          const errors = { ...nameControl.errors };
+          delete errors['duplicateName'];
+          nameControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
+        }
+      }
+    });
+  }
+
   async onAddBunny(): Promise<void> {
+      // Clear any previous duplicate name error
+      this.duplicateNameError = false;
+      
       if (this.addBunnyForm.valid) {
         try {
           const formValue = this.addBunnyForm.value;
@@ -71,6 +93,10 @@ export class AddBunnyFormComponent implements OnDestroy {
           }
         } catch (error) {
           console.error('Error adding bunny:', error);
+          if (error instanceof Error && error.message === 'DUPLICATE_NAME') {
+            this.duplicateNameError = true;
+            this.addBunnyForm.get('name')?.setErrors({ duplicateName: true });
+          }
           // TODO Error handling - could show toast notification
         }
       } else {
@@ -87,6 +113,9 @@ export class AddBunnyFormComponent implements OnDestroy {
       if (field && field.invalid && (field.dirty || field.touched)) {
         if (field.errors?.['required']) {
           return `${this.getFieldDisplayName(fieldName)} is required`;
+        }
+        if (field.errors?.['duplicateName']) {
+          return `A bunny with this name already exists. Please choose a different name.`;
         }
         if (field.errors?.['minlength']) {
           return `${this.getFieldDisplayName(fieldName)} must be at least ${field.errors['minlength'].requiredLength} characters`;

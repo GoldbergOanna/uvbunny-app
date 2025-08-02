@@ -46,7 +46,7 @@ export class EventService {
       orderBy('timestamp', 'desc')
     );
 
-    onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+    this.ngZone.run(() => onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
       const events: BunnyEvent[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...TimestampUtil.convertFirestoreDocument<Omit<BunnyEvent, 'id'>>(doc.data()),
@@ -55,7 +55,7 @@ export class EventService {
     }, (error) => {
       console.error('Error loading events:', error);
       this.eventsSubject.next([]);
-    });
+    }));
   }
 
   public async feedBunny(bunnyId: string, foodType: 'lettuce' | 'carrot'): Promise<boolean> {
@@ -186,7 +186,7 @@ export class EventService {
         orderBy('timestamp', 'desc')
       );
 
-      const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
+      const unsubscribe = this.ngZone.run(() => onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
         const events: BunnyEvent[] = snapshot.docs.map(doc => ({
           id: doc.id,
           ...TimestampUtil.convertFirestoreDocument<Omit<BunnyEvent, 'id'>>(doc.data()),
@@ -195,7 +195,7 @@ export class EventService {
       }, (error) => {
         console.error('Error getting bunny events:', error);
         subscriber.error(error);
-      });
+      }));
 
       return () => unsubscribe();
     });
@@ -218,6 +218,8 @@ export class EventService {
         where('bunnyId', '==', bunnyId),
         orderBy('timestamp', 'asc')
       );
+
+
 
       const snapshot = await this.ngZone.run(() => getDocs(q));
       const events = snapshot.docs.map(doc =>
