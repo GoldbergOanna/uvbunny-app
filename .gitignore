@@ -49,3 +49,4 @@ src/environments/environment.prod.ts
 
 # Package lock file (optional - commonly excluded for npm projects)
 package-lock.json
+src/environments/
