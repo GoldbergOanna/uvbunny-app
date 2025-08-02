@@ -131,46 +131,49 @@ jobs:
           # Create production environment file with proper TypeScript structure
           echo "📝 Creating production environment file for PR preview..."
           
-          # Create the file header with TypeScript interface
-          echo "// Generated automatically from GitHub Secrets during CI/CD (PR Preview)" > src/environments/environment.prod.ts
-          echo "// DO NOT EDIT - This file is created during the build process" >> src/environments/environment.prod.ts
-          echo "" >> src/environments/environment.prod.ts
-          echo "interface FirebaseConfig {" >> src/environments/environment.prod.ts
-          echo "  apiKey: string;" >> src/environments/environment.prod.ts
-          echo "  authDomain: string;" >> src/environments/environment.prod.ts
-          echo "  projectId: string;" >> src/environments/environment.prod.ts
-          echo "  storageBucket: string;" >> src/environments/environment.prod.ts
-          echo "  messagingSenderId: string;" >> src/environments/environment.prod.ts
-          echo "  appId: string;" >> src/environments/environment.prod.ts
-          echo "  measurementId: string;" >> src/environments/environment.prod.ts
-          echo "}" >> src/environments/environment.prod.ts
-          echo "" >> src/environments/environment.prod.ts
-          echo "const firebaseConfig: FirebaseConfig = {" >> src/environments/environment.prod.ts
+          # Create environment file using heredoc to avoid shell interpolation issues
+          cat > src/environments/environment.prod.ts << 'EOF'
+// Generated automatically from GitHub Secrets during CI/CD (PR Preview)
+// DO NOT EDIT - This file is created during the build process
+
+export const environment = {
+  production: true,
+  firebase: {
+EOF
           
-          # Add configuration values with proper escaping and validation
-          echo "  apiKey: \"${FIREBASE_API_KEY}\"," >> src/environments/environment.prod.ts
-          echo "  authDomain: \"${FIREBASE_AUTH_DOMAIN}\"," >> src/environments/environment.prod.ts
-          echo "  projectId: \"${FIREBASE_PROJECT_ID}\"," >> src/environments/environment.prod.ts
-          echo "  storageBucket: \"${FIREBASE_STORAGE_BUCKET}\"," >> src/environments/environment.prod.ts
-          echo "  messagingSenderId: \"${FIREBASE_MESSAGING_SENDER_ID}\"," >> src/environments/environment.prod.ts
-          echo "  appId: \"${FIREBASE_APP_ID}\"," >> src/environments/environment.prod.ts
-          echo "  measurementId: ${MEASUREMENT_ID}" >> src/environments/environment.prod.ts
+          # Add Firebase configuration with proper escaping and single quotes
+          # Escape any single quotes in the secret values to prevent syntax errors
+          API_KEY_ESCAPED=$(echo "${FIREBASE_API_KEY}" | sed "s/'/\\\\'/g")
+          AUTH_DOMAIN_ESCAPED=$(echo "${FIREBASE_AUTH_DOMAIN}" | sed "s/'/\\\\'/g")
+          PROJECT_ID_ESCAPED=$(echo "${FIREBASE_PROJECT_ID}" | sed "s/'/\\\\'/g")
+          STORAGE_BUCKET_ESCAPED=$(echo "${FIREBASE_STORAGE_BUCKET}" | sed "s/'/\\\\'/g")
+          MESSAGING_SENDER_ID_ESCAPED=$(echo "${FIREBASE_MESSAGING_SENDER_ID}" | sed "s/'/\\\\'/g")
+          APP_ID_ESCAPED=$(echo "${FIREBASE_APP_ID}" | sed "s/'/\\\\'/g")
           
-          # Add the rest of the file structure
-          echo "};" >> src/environments/environment.prod.ts
-          echo "" >> src/environments/environment.prod.ts
-          echo "export const environment = {" >> src/environments/environment.prod.ts
-          echo "  production: true," >> src/environments/environment.prod.ts
-          echo "  firebase: {" >> src/environments/environment.prod.ts
-          echo "    apiKey: firebaseConfig.apiKey," >> src/environments/environment.prod.ts
-          echo "    authDomain: firebaseConfig.authDomain," >> src/environments/environment.prod.ts
-          echo "    projectId: firebaseConfig.projectId," >> src/environments/environment.prod.ts
-          echo "    storageBucket: firebaseConfig.storageBucket," >> src/environments/environment.prod.ts
-          echo "    messagingSenderId: firebaseConfig.messagingSenderId," >> src/environments/environment.prod.ts
-          echo "    appId: firebaseConfig.appId," >> src/environments/environment.prod.ts
-          echo "    measurementId: firebaseConfig.measurementId," >> src/environments/environment.prod.ts
-          echo "  }" >> src/environments/environment.prod.ts
-          echo "};" >> src/environments/environment.prod.ts
+          # Handle optional measurement ID
+          if [[ -n "${FIREBASE_MEASUREMENT_ID}" ]]; then
+            MEASUREMENT_ID_ESCAPED=$(echo "${FIREBASE_MEASUREMENT_ID}" | sed "s/'/\\\\'/g")
+            MEASUREMENT_LINE="    measurementId: '${MEASUREMENT_ID_ESCAPED}'"
+          else
+            MEASUREMENT_LINE="    measurementId: ''"
+          fi
+          
+          # Write the Firebase configuration properties
+          cat >> src/environments/environment.prod.ts << EOF
+    apiKey: '${API_KEY_ESCAPED}',
+    authDomain: '${AUTH_DOMAIN_ESCAPED}',
+    projectId: '${PROJECT_ID_ESCAPED}',
+    storageBucket: '${STORAGE_BUCKET_ESCAPED}',
+    messagingSenderId: '${MESSAGING_SENDER_ID_ESCAPED}',
+    appId: '${APP_ID_ESCAPED}',
+${MEASUREMENT_LINE}
+EOF
+          
+          # Close the environment object
+          cat >> src/environments/environment.prod.ts << 'EOF'
+  }
+};
+EOF
           
           # Verify production file was created
           if [[ ! -f "src/environments/environment.prod.ts" ]]; then
@@ -183,46 +186,33 @@ jobs:
           # Create development environment file with proper TypeScript structure
           echo "📝 Creating development environment file for PR preview..."
           
-          # Create the file header with TypeScript interface
-          echo "// Generated automatically from GitHub Secrets during CI/CD (PR Preview)" > src/environments/environment.ts
-          echo "// DO NOT EDIT - This file is created during the build process" >> src/environments/environment.ts
-          echo "" >> src/environments/environment.ts
-          echo "interface FirebaseConfig {" >> src/environments/environment.ts
-          echo "  apiKey: string;" >> src/environments/environment.ts
-          echo "  authDomain: string;" >> src/environments/environment.ts
-          echo "  projectId: string;" >> src/environments/environment.ts
-          echo "  storageBucket: string;" >> src/environments/environment.ts
-          echo "  messagingSenderId: string;" >> src/environments/environment.ts
-          echo "  appId: string;" >> src/environments/environment.ts
-          echo "  measurementId: string;" >> src/environments/environment.ts
-          echo "}" >> src/environments/environment.ts
-          echo "" >> src/environments/environment.ts
-          echo "const firebaseConfig: FirebaseConfig = {" >> src/environments/environment.ts
+          # Create environment file using heredoc to avoid shell interpolation issues
+          cat > src/environments/environment.ts << 'EOF'
+// Generated automatically from GitHub Secrets during CI/CD (PR Preview)
+// DO NOT EDIT - This file is created during the build process
+
+export const environment = {
+  production: false,
+  firebase: {
+EOF
           
-          # Add configuration values with proper escaping and validation
-          echo "  apiKey: \"${FIREBASE_API_KEY}\"," >> src/environments/environment.ts
-          echo "  authDomain: \"${FIREBASE_AUTH_DOMAIN}\"," >> src/environments/environment.ts
-          echo "  projectId: \"${FIREBASE_PROJECT_ID}\"," >> src/environments/environment.ts
-          echo "  storageBucket: \"${FIREBASE_STORAGE_BUCKET}\"," >> src/environments/environment.ts
-          echo "  messagingSenderId: \"${FIREBASE_MESSAGING_SENDER_ID}\"," >> src/environments/environment.ts
-          echo "  appId: \"${FIREBASE_APP_ID}\"," >> src/environments/environment.ts
-          echo "  measurementId: ${MEASUREMENT_ID}" >> src/environments/environment.ts
+          # Use the same escaped variables from production environment
+          # Write the Firebase configuration properties
+          cat >> src/environments/environment.ts << EOF
+    apiKey: '${API_KEY_ESCAPED}',
+    authDomain: '${AUTH_DOMAIN_ESCAPED}',
+    projectId: '${PROJECT_ID_ESCAPED}',
+    storageBucket: '${STORAGE_BUCKET_ESCAPED}',
+    messagingSenderId: '${MESSAGING_SENDER_ID_ESCAPED}',
+    appId: '${APP_ID_ESCAPED}',
+${MEASUREMENT_LINE}
+EOF
           
-          # Add the rest of the file structure
-          echo "};" >> src/environments/environment.ts
-          echo "" >> src/environments/environment.ts
-          echo "export const environment = {" >> src/environments/environment.ts
-          echo "  production: false," >> src/environments/environment.ts
-          echo "  firebase: {" >> src/environments/environment.ts
-          echo "    apiKey: firebaseConfig.apiKey," >> src/environments/environment.ts
-          echo "    authDomain: firebaseConfig.authDomain," >> src/environments/environment.ts
-          echo "    projectId: firebaseConfig.projectId," >> src/environments/environment.ts
-          echo "    storageBucket: firebaseConfig.storageBucket," >> src/environments/environment.ts
-          echo "    messagingSenderId: firebaseConfig.messagingSenderId," >> src/environments/environment.ts
-          echo "    appId: firebaseConfig.appId," >> src/environments/environment.ts
-          echo "    measurementId: firebaseConfig.measurementId," >> src/environments/environment.ts
-          echo "  }" >> src/environments/environment.ts
-          echo "};" >> src/environments/environment.ts
+          # Close the environment object
+          cat >> src/environments/environment.ts << 'EOF'
+  }
+};
+EOF
           
           # Verify development file was created
           if [[ ! -f "src/environments/environment.ts" ]]; then
@@ -263,6 +253,39 @@ jobs:
             echo "❌ environment.prod.ts has incorrect structure"
             exit 1
           fi
+
+      - name: Validate TypeScript syntax
+        run: |
+          echo "🔍 Validating TypeScript syntax of generated environment files for PR preview..."
+          
+          # Install TypeScript if not already available
+          if ! command -v tsc &> /dev/null; then
+            echo "📦 Installing TypeScript for syntax validation..."
+            npm install -g typescript
+          fi
+          
+          # Validate TypeScript syntax without compilation
+          echo "Checking environment.ts..."
+          if tsc --noEmit --target es2015 src/environments/environment.ts; then
+            echo "✅ environment.ts has valid TypeScript syntax"
+          else
+            echo "❌ environment.ts has TypeScript syntax errors"
+            echo "File contents (first 20 lines):"
+            head -20 src/environments/environment.ts
+            exit 1
+          fi
+          
+          echo "Checking environment.prod.ts..."
+          if tsc --noEmit --target es2015 src/environments/environment.prod.ts; then
+            echo "✅ environment.prod.ts has valid TypeScript syntax"
+          else
+            echo "❌ environment.prod.ts has TypeScript syntax errors"
+            echo "File contents (first 20 lines):"
+            head -20 src/environments/environment.prod.ts
+            exit 1
+          fi
+          
+          echo "✅ All environment files have valid TypeScript syntax"
 
       - name: Build application for preview
         run: |
