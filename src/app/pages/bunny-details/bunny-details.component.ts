@@ -107,7 +107,7 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
       this.eventService.getBunnyEvents(bunnyId),
       this.configService.config$,
     ]).pipe(
-      switchMap(([allBunnies, events, config]) => {
+      switchMap(([allBunnies, events]) => {
         const bunny = allBunnies.find((b) => b.id === bunnyId);
 
         if (!bunny) {
@@ -223,51 +223,106 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      this.updateState({ error: 'Image file size must be less than 5MB' });
+    // Validate file size (max 200KB to prevent Firestore field size limits)
+    const maxSize = 200 * 1024; // 200KB
+    if (file.size > maxSize) {
+      this.updateState({ 
+        error: `Image file is too large (${Math.round(file.size / 1024)}KB). Please use an image smaller than 200KB or use an external URL (Gravatar, Imgur, etc.) instead.` 
+      });
       return;
     }
 
     this.updateState({ isUploadingAvatar: true, error: null });
 
-    // For now, we'll create a URL from the file and update the bunny
-    // In a real implementation, you'd upload to Firebase Storage first
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const avatarUrl = e.target?.result as string;
-
-      this.bunnyService
-        .updateBunny(this.bunnyId!, { avatarUrl })
-        .then((success) => {
-          if (success) {
-            // Reload bunny details to get updated avatar
-            this.loadBunnyDetails(this.bunnyId!)
-              .pipe(takeUntil(this.destroy$))
-              .subscribe();
-          } else {
-            this.updateState({
-              error: 'Failed to upload avatar',
-              isUploadingAvatar: false,
-            });
-          }
-        })
-        .catch((error) => {
-          console.error('Error uploading avatar:', error);
+    // Create a compressed/resized image to stay under Firestore limits
+    this.compressAndUploadImage(file)
+      .then((avatarUrl) => {
+        return this.bunnyService.updateBunny(this.bunnyId!, { avatarUrl });
+      })
+      .then((success) => {
+        if (success) {
+          // Reload bunny details to get updated avatar
+          this.loadBunnyDetails(this.bunnyId!)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe();
+        } else {
           this.updateState({
             error: 'Failed to upload avatar',
             isUploadingAvatar: false,
           });
-        })
-        .finally(() => {
-          this.updateState({ isUploadingAvatar: false });
-        });
-    };
-
-    reader.readAsDataURL(file);
+        }
+      })
+      .catch((error) => {
+        console.error('Error uploading avatar:', error);
+        if (error.message?.includes('longer than')) {
+          this.updateState({
+            error: 'Image file is too large. Please use a smaller image or an external URL (Gravatar, Imgur, etc.)',
+            isUploadingAvatar: false,
+          });
+        } else {
+          this.updateState({
+            error: 'Failed to upload avatar. Try using an external image URL instead.',
+            isUploadingAvatar: false,
+          });
+        }
+      })
+      .finally(() => {
+        this.updateState({ isUploadingAvatar: false });
+      });
 
     // Reset input
     input.value = '';
+  }
+
+  /**
+   * Compress and resize image to prevent Firestore field size limits
+   */
+  private compressAndUploadImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions (max 150x150)
+        const maxSize = 150;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw and compress the image
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Convert to JPEG with compression
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        
+        // Check if the result is still too large
+        if (dataUrl.length > 800000) { // ~800KB in base64
+          reject(new Error('Image is still too large after compression'));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
   }
 
   /**
@@ -367,18 +422,12 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
     return 'Unknown activity';
   }
 
-  private isRecentEvent(timestamp: Date): boolean {
-    const now = new Date();
-    const eventTime = new Date(timestamp);
-    const diffHours = (now.getTime() - eventTime.getTime()) / (1000 * 60 * 60);
-    return diffHours < 24; // Within last 24 hours
-  }
 
-  trackByEventId(index: number, event: BunnyEvent): string {
+  trackByEventId(_index: number, event: BunnyEvent): string {
     return event.id;
   }
 
-  trackByBunnyId(index: number, bunny: Bunny): string {
+  trackByBunnyId(_index: number, bunny: Bunny): string {
     return bunny.id;
   }
 

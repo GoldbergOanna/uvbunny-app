@@ -80,8 +80,11 @@
               </div>
               <span class="upload-text">
                 {{
-                  (isUploadingAvatar$ | async) ? "Uploading..." : "Change Photo"
+                  (isUploadingAvatar$ | async) ? "Uploading..." : "Upload Photo"
                 }}
+              </span>
+              <span class="upload-hint">
+                Max 200KB or use URL
               </span>
             </label>
           </div>
