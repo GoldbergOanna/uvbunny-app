@@ -25,7 +25,11 @@ UVbunny is a happiness tracking application. The application demonstrates modern
 - 📊 **Event Sourcing** - Complete audit trail of all bunny interactions
 - 📱 **Responsive Design** - Modern minimalist UI that works on all devices
 - 🔄 **Real-time Updates** - Live synchronization across multiple users
-- ☁️ **Cloud Storage** - Avatar upload functionality with Firebase Storage
+- 🖼️ **Smart Avatar System** - Bunny emoji fallbacks with image URL support
+- 🌐 **URL Avatar Support** - Gravatar, Imgur, Cloudinary integration
+- 📤 **File Upload with Compression** - Auto-resize images to prevent storage limits
+- ✨ **Accessibility Features** - WCAG compliant with keyboard navigation
+- 🎨 **Modern UI Components** - Card-based design with smooth animations
 
 ## 🏗️ Technical Architecture
 
@@ -39,8 +43,8 @@ UVbunny is a happiness tracking application. The application demonstrates modern
 ### Backend Stack
 - **Database:** Cloud Firestore (NoSQL)
 - **Authentication:** Firebase Auth (Future Enhancement)
-- **File Storage:** Firebase Storage
-- **Functions:** Firebase Cloud Functions
+- **File Storage:** Client-side image compression with base64 fallback
+- **Functions:** Firebase Cloud Functions (Future Enhancement)
 - **Hosting:** Firebase Hosting
 
 ### DevOps & Deployment
@@ -313,8 +317,32 @@ firebase deploy --only firestore:rules
 
 ### Firebase Optimizations
 - **Firestore Indexes:** Optimized queries for large datasets
-- **Image Compression:** Automatic image optimization for avatars
+- **Image Compression:** Automatic client-side image optimization for avatars
 - **CDN Delivery:** Global content delivery through Firebase Hosting
+- **Data Size Management:** Smart handling of Firestore field size limits
+
+### Avatar Management System
+
+The application features a comprehensive avatar system with multiple input methods:
+
+#### 🌐 **External URL Support**
+- **Gravatar Integration:** Direct support for `gravatar.com/avatar/[hash]?parameters`
+- **Image Hosting Services:** Imgur, Cloudinary, Unsplash, Pexels, GitHub/GitLab
+- **Custom URLs:** Any valid image URL with common extensions (.jpg, .png, .gif, .webp, .svg)
+- **Query Parameters:** Full support for URL parameters like `?s=400&d=robohash&r=x`
+
+#### 📤 **File Upload System**
+- **Client-side Compression:** Automatic image resizing to 150x150px maximum
+- **JPEG Optimization:** 70% quality compression to reduce file size
+- **Size Validation:** 200KB limit with helpful error messages
+- **Format Support:** All common image formats with automatic conversion
+- **Error Handling:** Graceful fallback suggestions for oversized images
+
+#### 🐰 **Fallback System**
+- **Bunny Emoji Default:** Cute 🐰 emoji when no avatar is provided
+- **Consistent Styling:** Circular avatars with matching borders and hover effects
+- **Responsive Design:** Different sizes for mobile, tablet, and desktop
+- **Accessibility:** Proper alt text and ARIA labels for screen readers
 
 ## 🔐 Security Considerations
 
@@ -348,16 +376,20 @@ firebase deploy --only firestore:rules
 - [ ] No user authentication (single-user app)
 - [ ] Limited offline functionality
 - [ ] No push notifications for sad bunnies
-- [ ] Basic avatar upload (no image processing)
+- [ ] Avatar uploads limited to 200KB (Firestore field limits)
+- [ ] No Firebase Storage integration for large images
 
 ### Future Enhancements
 - [ ] **Multi-user Support:** User authentication and private bunny families
 - [ ] **Advanced Analytics:** Happiness trends and insights dashboard
 - [ ] **Push Notifications:** Alerts for bunny care reminders
-- [ ] **Image Processing:** Automatic avatar resizing and optimization
+- [ ] **Firebase Storage:** Large image uploads with automatic optimization
+- [ ] **Image Processing:** Advanced avatar editing and filters
 - [ ] **Dark Mode:** Alternative color scheme option
 - [ ] **Mobile App:** React Native or Flutter mobile application
 - [ ] **API Integration:** RESTful API for third-party integrations
+- [ ] **Offline Support:** PWA capabilities with service workers
+- [ ] **Batch Operations:** Multiple bunny management features
 
 ## 📚 Learning Outcomes
 
