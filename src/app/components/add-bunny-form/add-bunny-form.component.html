@@ -26,15 +26,18 @@
           </div>
 
           <div class="col-12 col-md-6">
-            <label for="bunnyAvatar" class="form-label">Avatar URL</label>
+            <label for="bunnyAvatar" class="form-label">Avatar URL <span class="text-muted">(optional)</span></label>
             <input
               type="url"
               class="form-control"
               [class.is-invalid]="hasFieldError('avatarUrl')"
               id="bunnyAvatar"
               formControlName="avatarUrl"
-              placeholder="https://example.com/avatar.jpg"
+              placeholder="https://gravatar.com/avatar/... or https://imgur.com/..."
             />
+            <div class="form-text text-muted small">
+              Examples: Gravatar, Imgur, Cloudinary, or any image URL
+            </div>
             <div *ngIf="hasFieldError('avatarUrl')" class="invalid-feedback">
               {{ getFieldError("avatarUrl") }}
             </div>

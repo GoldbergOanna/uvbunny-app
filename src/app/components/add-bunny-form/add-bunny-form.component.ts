@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { Observable, of } from 'rxjs';
@@ -38,7 +38,7 @@ export class AddBunnyFormComponent implements OnDestroy {
     ],
     avatarUrl: [
       '',
-      [Validators.pattern(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i)],
+      [this.createImageUrlValidator()],
     ],
     happiness: [
       10,
@@ -132,6 +132,9 @@ export class AddBunnyFormComponent implements OnDestroy {
         if (field.errors?.['pattern']) {
           return `Please enter a valid image URL`;
         }
+        if (field.errors?.['invalidImageUrl']) {
+          return `Please enter a valid image URL (supports gravatar.com, imgur.com, cloudinary.com, etc.)`;
+        }
       }
       return null;
     }
@@ -152,6 +155,52 @@ export class AddBunnyFormComponent implements OnDestroy {
         happiness: 'Happiness',
       };
       return displayNames[fieldName] || fieldName;
+    }
+
+    /**
+     * Custom validator for image URLs that supports various hosting services
+     */
+    private createImageUrlValidator(): ValidatorFn {
+      return (control: AbstractControl): { [key: string]: any } | null => {
+        const value = control.value?.trim();
+        
+        // Allow empty values since avatar is optional
+        if (!value) {
+          return null;
+        }
+
+        // Basic URL format validation
+        const urlPattern = /^https?:\/\/.+/i;
+        if (!urlPattern.test(value)) {
+          return { invalidImageUrl: true };
+        }
+
+        // Allow specific patterns for known image hosting services
+        const validPatterns = [
+          // Gravatar URLs
+          /^https?:\/\/(www\.)?gravatar\.com\/avatar\/[a-f0-9]+(\?.*)?$/i,
+          
+          // Common image hosting services
+          /^https?:\/\/(www\.)?(imgur\.com|i\.imgur\.com)\/.+$/i,
+          /^https?:\/\/(www\.)?(cloudinary\.com|res\.cloudinary\.com)\/.+$/i,
+          /^https?:\/\/(www\.)?(unsplash\.com|images\.unsplash\.com)\/.+$/i,
+          /^https?:\/\/(www\.)?(pexels\.com|images\.pexels\.com)\/.+$/i,
+          
+          // URLs ending with image extensions
+          /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff|ico)(\?.*)?$/i,
+          
+          // GitHub/GitLab avatars and other common patterns
+          /^https?:\/\/(www\.)?(github\.com|githubusercontent\.com|gitlab\.com)\/.+$/i,
+          /^https?:\/\/(www\.)?(cdn\.|images\.|img\.|media\.|static\.)/i,
+          
+          // Generic image URLs with common image hosting patterns
+          /^https?:\/\/[^\/]+\/.+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i
+        ];
+
+        const isValid = validPatterns.some(pattern => pattern.test(value));
+        
+        return isValid ? null : { invalidImageUrl: true };
+      };
     }
 
   ngOnDestroy(): void {
