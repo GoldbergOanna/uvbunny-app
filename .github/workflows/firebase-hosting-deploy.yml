@@ -24,9 +24,25 @@ jobs:
         env:
           NODE_ENV: development
 
-      - name: Generate environment.prod.ts for production
+      - name: Generate environment files for production
         run: |
           mkdir -p src/environments
+          
+          # Create environment.ts (used by app.config.ts)
+          echo "export const environment = {" > src/environments/environment.ts
+          echo "  production: true," >> src/environments/environment.ts
+          echo "  firebase: {" >> src/environments/environment.ts
+          echo "    apiKey: '${{ secrets.FIREBASE_API_KEY }}'," >> src/environments/environment.ts
+          echo "    authDomain: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'," >> src/environments/environment.ts
+          echo "    projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'," >> src/environments/environment.ts
+          echo "    storageBucket: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'," >> src/environments/environment.ts
+          echo "    messagingSenderId: '${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}'," >> src/environments/environment.ts
+          echo "    appId: '${{ secrets.FIREBASE_APP_ID }}'," >> src/environments/environment.ts
+          echo "    measurementId: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'" >> src/environments/environment.ts
+          echo "  }" >> src/environments/environment.ts
+          echo "};" >> src/environments/environment.ts
+          
+          # Create environment.prod.ts (for Angular build configuration)
           echo "export const environment = {" > src/environments/environment.prod.ts
           echo "  production: true," >> src/environments/environment.prod.ts
           echo "  firebase: {" >> src/environments/environment.prod.ts
@@ -53,3 +69,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId: live

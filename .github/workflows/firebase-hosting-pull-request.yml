@@ -84,6 +84,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId: preview
           expires: 7d
 
       - name: Cleanup environment files
