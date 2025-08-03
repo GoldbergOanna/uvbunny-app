@@ -25,13 +25,18 @@
           (keydown.enter)="onBunnyCardClick(bunny.id)"
           (keydown.space)="onBunnyCardClick(bunny.id)"
         >
-          <div class="bunny-avatar-container">
+          <div class="bunny-avatar-container" [class.show-emoji-fallback]="!hasAvatarUrl(bunny)">
             <img
+              *ngIf="hasAvatarUrl(bunny)"
               [src]="getBunnyAvatar(bunny)"
               [alt]="bunny.name + ' avatar'"
               class="bunny-avatar"
               loading="lazy"
+              (error)="onAvatarError($event)"
             />
+            <div class="bunny-emoji-avatar" [class.visible]="!hasAvatarUrl(bunny)">
+              {{ fallbackEmoji }}
+            </div>
           </div>
 
           <div class="bunny-info">

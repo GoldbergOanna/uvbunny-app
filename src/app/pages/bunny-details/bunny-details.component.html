@@ -44,12 +44,18 @@
         <div
           class="avatar-container"
           [class.uploading]="isUploadingAvatar$ | async"
+          [class.show-emoji-fallback]="!hasAvatarUrl(bunny)"
         >
           <img
+            *ngIf="hasAvatarUrl(bunny)"
             [src]="getBunnyAvatar(bunny)"
             [alt]="bunny.name + ' avatar'"
             class="bunny-avatar"
+            (error)="onAvatarError($event)"
           />
+          <div class="bunny-emoji-avatar" [class.visible]="!hasAvatarUrl(bunny)">
+            {{ fallbackEmoji }}
+          </div>
 
           <!-- Upload Overlay -->
           <div class="avatar-upload-overlay">

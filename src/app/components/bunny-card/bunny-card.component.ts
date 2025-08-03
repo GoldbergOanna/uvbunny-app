@@ -17,6 +17,7 @@ import { HappinessMeterComponent } from '@components/happiness-meter/happiness-m
   styleUrl: './bunny-card.component.scss'
 })
 export class BunnyCardComponent {
+  readonly fallbackEmoji = '🐰';
     private readonly router = inject(Router);
     private readonly dashboardState = inject(DashboardStateService);
 
@@ -31,15 +32,34 @@ export class BunnyCardComponent {
 
 
   /**
-   * Get bunny avatar URL or generate a default one
+   * Get bunny avatar URL or return null to use fallback emoji
    * @param bunny - Bunny object
-   * @returns Avatar URL
+   * @returns Avatar URL or null for emoji fallback
    */
-  getBunnyAvatar(bunny: Bunny): string {
-    return (
-      bunny.avatarUrl ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(bunny.name)}&background=2563eb&color=ffffff&size=80`
-    );
+  getBunnyAvatar(bunny: Bunny): string | null {
+    return bunny.avatarUrl || null;
+  }
+
+  /**
+   * Check if bunny has a valid avatar URL
+   * @param bunny - Bunny object
+   * @returns True if bunny has avatarUrl
+   */
+  hasAvatarUrl(bunny: Bunny): boolean {
+    return !!(bunny.avatarUrl && bunny.avatarUrl.trim());
+  }
+
+  /**
+   * Handle avatar image load error
+   * @param event - Error event
+   */
+  onAvatarError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const container = img.parentElement;
+    if (container) {
+      container.classList.add('show-emoji-fallback');
+    }
   }
   /**
    * TrackBy function for ngFor to optimize rendering

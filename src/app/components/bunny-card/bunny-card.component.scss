@@ -33,6 +33,10 @@
     .bunny-avatar-container {
       text-align: center;
       margin-bottom: 1rem;
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
 
       .bunny-avatar {
         width: 80px;
@@ -41,6 +45,33 @@
         object-fit: cover;
         border: 3px solid var(--border);
         transition: var(--transition);
+        display: block;
+      }
+
+      .bunny-emoji-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid var(--border);
+        background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        transition: var(--transition);
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        &.visible {
+          opacity: 1;
+        }
+      }
+
+      &.show-emoji-fallback .bunny-emoji-avatar {
+        opacity: 1;
+        position: static;
       }
     }
 
@@ -87,9 +118,20 @@
   .bunny-card {
     padding: 1.25rem !important;
 
-    .bunny-avatar {
+    .bunny-avatar-container {
       width: 64px !important;
       height: 64px !important;
+
+      .bunny-avatar {
+        width: 64px !important;
+        height: 64px !important;
+      }
+
+      .bunny-emoji-avatar {
+        width: 64px !important;
+        height: 64px !important;
+        font-size: 2rem !important;
+      }
     }
   }
 }

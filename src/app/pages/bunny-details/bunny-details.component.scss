@@ -111,6 +111,8 @@
   .avatar-container {
     position: relative;
     flex-shrink: 0;
+    width: 150px;
+    height: 150px;
 
     &.uploading .avatar-upload-overlay {
       opacity: 1;
@@ -123,6 +125,33 @@
       object-fit: cover;
       border: 4px solid var(--border);
       transition: var(--transition);
+      display: block;
+    }
+
+    .bunny-emoji-avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 4px solid var(--border);
+      background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      transition: var(--transition);
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      &.visible {
+        opacity: 1;
+      }
+    }
+
+    &.show-emoji-fallback .bunny-emoji-avatar {
+      opacity: 1;
+      position: static;
     }
 
     .avatar-upload-overlay {
@@ -489,9 +518,20 @@
       gap: 1.5rem;
     }
 
-    .avatar-container .bunny-avatar {
-      width: 120px;
-      height: 120px;
+    .avatar-container {
+      width: 120px !important;
+      height: 120px !important;
+
+      .bunny-avatar {
+        width: 120px !important;
+        height: 120px !important;
+      }
+
+      .bunny-emoji-avatar {
+        width: 120px !important;
+        height: 120px !important;
+        font-size: 3rem !important;
+      }
     }
 
     .bunny-info .bunny-name {
