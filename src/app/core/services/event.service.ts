@@ -219,8 +219,6 @@ export class EventService {
         orderBy('timestamp', 'asc')
       );
 
-
-
       const snapshot = await this.ngZone.run(() => getDocs(q));
       const events = snapshot.docs.map(doc =>
         TimestampUtil.convertFirestoreDocument<BunnyEvent>({ id: doc.id, ...doc.data() })

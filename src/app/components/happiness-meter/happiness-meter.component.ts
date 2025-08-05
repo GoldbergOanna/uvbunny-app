@@ -2,7 +2,7 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-happiness-meter',
+  selector: 'uvbunny-happiness-meter',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './happiness-meter.component.html',
@@ -21,7 +21,7 @@ export class HappinessMeterComponent {
    */
   getHappinessColor(happiness: number): string {
     const validatedHappiness = this.validateHappiness(happiness);
-    
+
     if (validatedHappiness >= 80) return 'excellent';
     if (validatedHappiness >= 50) return 'good';
     if (validatedHappiness >= 20) return 'okay';
@@ -45,13 +45,18 @@ export class HappinessMeterComponent {
    */
   getHappinessStatus(happiness: number): string {
     const validatedHappiness = this.validateHappiness(happiness);
-    
+
     if (validatedHappiness >= 80) return 'Excellent! 🌟';
     if (validatedHappiness >= 50) return 'Good 😊';
     if (validatedHappiness >= 20) return 'Needs attention 😐';
     return 'Needs care! 😢';
   }
 
+  /**
+   * Validate and clamp happiness value between 0-100
+   * @param happiness - Raw happiness value
+   * @returns Validated happiness value
+   */
   /**
    * Validate and clamp happiness value between 0-100
    * @param happiness - Raw happiness value

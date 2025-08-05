@@ -66,7 +66,7 @@ export class DashboardStateService {
     return {
       bunnies,
       stats: {
-        averageHappiness: Math.round(averageHappiness * 10) / 10,
+        averageHappiness: Math.round(averageHappiness * 100) / 100,
         totalBunnies: bunnies.length,
         eventsToday: this.getEventsToday(events),
       },

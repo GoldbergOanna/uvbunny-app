@@ -226,8 +226,8 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
     // Validate file size (max 200KB to prevent Firestore field size limits)
     const maxSize = 200 * 1024; // 200KB
     if (file.size > maxSize) {
-      this.updateState({ 
-        error: `Image file is too large (${Math.round(file.size / 1024)}KB). Please use an image smaller than 200KB or use an external URL (Gravatar, Imgur, etc.) instead.` 
+      this.updateState({
+        error: `Image file is too large (${Math.round(file.size / 1024)}KB). Please use an image smaller than 200KB or use an external URL (Gravatar, Imgur, etc.) instead.`
       });
       return;
     }
@@ -284,10 +284,9 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
       const img = new Image();
 
       img.onload = () => {
-        // Calculate new dimensions (max 150x150)
         const maxSize = 150;
         let { width, height } = img;
-        
+
         if (width > height) {
           if (width > maxSize) {
             height = (height * maxSize) / width;
@@ -303,14 +302,12 @@ export class BunnyDetailsComponent implements OnInit, OnDestroy {
         canvas.width = width;
         canvas.height = height;
 
-        // Draw and compress the image
         ctx?.drawImage(img, 0, 0, width, height);
-        
-        // Convert to JPEG with compression
+
         const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-        
-        // Check if the result is still too large
-        if (dataUrl.length > 800000) { // ~800KB in base64
+
+
+        if (dataUrl.length > 800000) {
           reject(new Error('Image is still too large after compression'));
         } else {
           resolve(dataUrl);
