@@ -430,9 +430,6 @@ This project demonstrates proficiency in:
 - Update documentation for public APIs
 - Ensure accessibility compliance
 
-## 📄 License
-
-This project is created for the UVeye senior developer assignment and is intended for evaluation purposes.
 
 ## 📞 Contact & Support
 

@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /* Helpers */
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true ||  // custom claim
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true
+      );
+    }
+
+    /** 1) Public, read-only assets **/
+    match /public/{path=**} {
+      allow read: if true;
+      allow write: if false; // no client writes
+    }
+
+    /** 2) User-owned files **/
+    match /users/{uid}/{path=**} {
+      // Only the owner can read their files
+      allow read: if isOwner(uid);
+
+      // Create/Update with validation (tweak size/MIME as you need)
+      allow create, update: if isOwner(uid)
+        && request.resource.size < 5 * 1024 * 1024            // < 5MB
+        && request.resource.contentType.matches('^(image/.*|application/pdf)$');
+
+      // Owner can delete
+      allow delete: if isOwner(uid);
+    }
+
+    /** 3) Optional admin area **/
+    match /admin/{path=**} {
+      allow read, write: if isAdmin();
+    }
+
+    /** 4) Deny everything else **/
+    match /{all=**} {
+      allow read, write: if false;
+    }
+  }
+}
