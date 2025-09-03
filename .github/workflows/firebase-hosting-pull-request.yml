@@ -8,21 +8,30 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: hosting-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build_and_preview:
+    # Prevents secrets exposure from forks (keeps using your repo only)
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
 
-      - name: Validate required secrets
+      # Fail fast if any secret is missing
+      - name: Assert Firebase secrets exist
+        run: |
+          for v in FIREBASE_API_KEY FIREBASE_AUTH_DOMAIN FIREBASE_PROJECT_ID FIREBASE_STORAGE_BUCKET FIREBASE_MESSAGING_SENDER_ID FIREBASE_APP_ID FIREBASE_MEASUREMENT_ID; do
+            if [ -z "${!v}" ]; then echo "❌ Missing $v"; exit 1; fi
+          done
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -31,52 +40,54 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
-        run: |
-          echo "🔍 Validating required GitHub Secrets for PR preview..."
-          # Secret validation logic...
-          echo "✅ All required secrets are configured"
 
       - name: Install dependencies
         run: npm ci
-        env:
-          NODE_ENV: development
 
-      - name: Create environment files from secrets
-        env:
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+      # Create BOTH env files BEFORE build
+      - name: Create environment files
         run: |
           mkdir -p src/environments
-          echo "// Auto-generated environment.ts" > src/environments/environment.ts
-          echo "export const environment = { production: false, firebase: {" >> src/environments/environment.ts
-          echo "  apiKey: '${FIREBASE_API_KEY}'," >> src/environments/environment.ts
-          echo "  authDomain: '${FIREBASE_AUTH_DOMAIN}'," >> src/environments/environment.ts
-          echo "  projectId: '${FIREBASE_PROJECT_ID}'," >> src/environments/environment.ts
-          echo "  storageBucket: '${FIREBASE_STORAGE_BUCKET}'," >> src/environments/environment.ts
-          echo "  messagingSenderId: '${FIREBASE_MESSAGING_SENDER_ID}'," >> src/environments/environment.ts
-          echo "  appId: '${FIREBASE_APP_ID}'," >> src/environments/environment.ts
-          echo "  measurementId: '${FIREBASE_MEASUREMENT_ID}'" >> src/environments/environment.ts
-          echo "}};" >> src/environments/environment.ts
+          cat > src/environments/environment.ts <<'EOF'
+          export const environment = {
+            production: false,
+            firebase: {
+              apiKey: '${{ secrets.FIREBASE_API_KEY }}',
+              authDomain: '${{ secrets.FIREBASE_AUTH_DOMAIN }}',
+              projectId: '${{ secrets.FIREBASE_PROJECT_ID }}',
+              storageBucket: '${{ secrets.FIREBASE_STORAGE_BUCKET }}',
+              messagingSenderId: '${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}',
+              appId: '${{ secrets.FIREBASE_APP_ID }}',
+              measurementId: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
+            }
+          };
+          EOF
+          cat > src/environments/environment.prod.ts <<'EOF'
+          export const environment = {
+            production: true,
+            firebase: {
+              apiKey: '${{ secrets.FIREBASE_API_KEY }}',
+              authDomain: '${{ secrets.FIREBASE_AUTH_DOMAIN }}',
+              projectId: '${{ secrets.FIREBASE_PROJECT_ID }}',
+              storageBucket: '${{ secrets.FIREBASE_STORAGE_BUCKET }}',
+              messagingSenderId: '${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}',
+              appId: '${{ secrets.FIREBASE_APP_ID }}',
+              measurementId: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
+            }
+          };
+          EOF
 
-          cp src/environments/environment.ts src/environments/environment.prod.ts
-
-      - name: Debug environment.ts existence
+      # Explicit prod build (ensures fileReplacements → environment.prod.ts)
+      - name: Build application (prod)
         run: |
-          echo "🔍 Checking if environment.ts and environment.prod.ts exist..."
-          ls -l src/environments/
-          cat src/environments/environment.ts || echo "❌ environment.ts not found"
-          cat src/environments/environment.prod.ts || echo "❌ environment.prod.ts not found"
+          rm -rf dist
+          npx ng build --configuration production
 
-      - name: Build application for preview
+      # Guardrail: fail if placeholders/markers exist in the bundle
+      - name: Assert no placeholders in dist
         run: |
-          echo "🏗️ Building application for PR preview..."
-          npm run build
+          if grep -R -E "REPLACED_IN_CI|__FIREBASE_" dist -n; then
+            echo "❌ Placeholder tokens detected in built bundle"; exit 1; fi
 
       - name: Deploy to Firebase Hosting Preview
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -84,13 +95,9 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          channelId: preview
+          channelId: pr-${{ github.event.pull_request.number }}
           expires: 7d
 
       - name: Cleanup environment files
         if: always()
-        run: |
-          echo "🧹 Cleaning up generated environment files..."
-          rm -f src/environments/environment.ts
-          rm -f src/environments/environment.prod.ts
-          echo "✅ Cleanup completed"
+        run: rm -f src/environments/environment.ts src/environments/environment.prod.ts
