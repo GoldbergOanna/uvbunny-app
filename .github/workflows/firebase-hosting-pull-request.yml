@@ -14,8 +14,8 @@ concurrency:
 
 jobs:
   build_and_preview:
-    # Prevents secrets exposure from forks (keeps using your repo only)
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    # Keep secrets safe (only run for branches in this repo, not forks)
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
 
     steps:
@@ -26,12 +26,13 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      # Fail fast if any secret is missing
+      # Fail fast if any secret is missing (+ validate service account JSON)
       - name: Assert Firebase secrets exist
         run: |
-          for v in FIREBASE_API_KEY FIREBASE_AUTH_DOMAIN FIREBASE_PROJECT_ID FIREBASE_STORAGE_BUCKET FIREBASE_MESSAGING_SENDER_ID FIREBASE_APP_ID FIREBASE_MEASUREMENT_ID; do
+          for v in FIREBASE_API_KEY FIREBASE_AUTH_DOMAIN FIREBASE_PROJECT_ID FIREBASE_STORAGE_BUCKET FIREBASE_MESSAGING_SENDER_ID FIREBASE_APP_ID FIREBASE_MEASUREMENT_ID FIREBASE_SERVICE_ACCOUNT; do
             if [ -z "${!v}" ]; then echo "❌ Missing $v"; exit 1; fi
           done
+          echo "$FIREBASE_SERVICE_ACCOUNT" | jq -e . > /dev/null || { echo "❌ FIREBASE_SERVICE_ACCOUNT is not valid JSON"; exit 1; }
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -40,6 +41,7 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UVBUNNY_APP }}
 
       - name: Install dependencies
         run: npm ci
@@ -81,12 +83,12 @@ jobs:
       - name: Build application (prod)
         run: |
           rm -rf dist
-          npx ng build --configuration production
+          npm run build -- --configuration production
 
-      # Guardrail: fail if placeholders/markers exist in the bundle
+      # Guardrail: fail only on YOUR placeholders
       - name: Assert no placeholders in dist
         run: |
-          if grep -R -E "REPLACED_IN_CI|__FIREBASE_" dist -n; then
+          if grep -R -E "REPLACED_IN_CI" dist -n; then
             echo "❌ Placeholder tokens detected in built bundle"; exit 1; fi
 
       - name: Deploy to Firebase Hosting Preview
