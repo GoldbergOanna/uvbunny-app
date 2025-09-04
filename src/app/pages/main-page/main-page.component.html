@@ -10,8 +10,6 @@
       <div *ngIf="!state.isLoading && !state.error">
         <!-- Stats Section -->
         <app-stats-section></app-stats-section>
-        <!-- Add Bunnies Section -->
-        <app-add-bunny-form></app-add-bunny-form>
          <!-- Bunnies Card Section -->
         <div class="section-header mb-4">
           <h2 class="section-title">Your Bunnies</h2>
@@ -20,6 +18,8 @@
           </p>
         </div>
         <app-bunny-card></app-bunny-card>
+         <!-- Add Bunnies Section -->
+        <app-add-bunny-form></app-add-bunny-form>
       </div>
     </ng-container>
   </main>
