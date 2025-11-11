@@ -330,10 +330,8 @@ This project is proprietary software developed for demonstration purposes. All r
 
 **Developer:** Oana Goldberg
 
-- **Email:** goldbergoanna@gmail.com
 - **GitHub:** [@goldbergoanna](https://github.com/goldbergoanna)
 - **Project Repository:** [github.com/goldbergoanna/uvbunny-app](https://github.com/goldbergoanna/uvbunny-app)
-- **Live Demo:** [uvbunny-app-2025.web.app](https://uvbunny-app-2025.web.app)
 
 ---
 
