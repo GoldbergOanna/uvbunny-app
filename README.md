@@ -11,7 +11,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-12.0-orange.svg)](https://firebase.google.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com/)
 
-[Live Demo]((https://uvbunny-app.web.app/)) • [Report Bug](https://github.com/goldbergoanna/uvbunny-app/issues)
+[Live Demo](https://uvbunny-app.web.app/) • [Report Bug](https://github.com/goldbergoanna/uvbunny-app/issues)
 
 </div>
 
